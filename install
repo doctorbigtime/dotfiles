@@ -1,0 +1,10 @@
+#!/bin/zsh
+for f in dot*
+do
+    real_name=$(echo $f | sed -e 's/^dot/./')
+    echo "copying $f to $real_name"
+    cp $f $HOME/$real_name
+done
+test -d $HOME/.oh-my-zsh/ || git clone https://github.com/robbyrussell/oh-my-zsh.git $HOME/.oh-my-zsh
+cp *-theme $HOME/.oh-my-zsh/themes/
+cp -R vim $HOME/.vim
