@@ -1,10 +1,44 @@
 #!/bin/zsh
-for f in dot*
+if [[ $# -gt 0 ]]; then
+    if [[ "-y" == $1 ]];  then
+        no_confirm=1
+    fi
+fi
+        
+here=$(realpath $(dirname $0))
+cd ${here}
+
+function confirm {
+    [[ "x${no_confirm}" == "x1" ]] && return 0
+    echo -n "$@ [y/N]: "
+    read -q answer && echo "" && return 0
+    echo "" && return 1
+}
+
+function install_file {
+    src=$1
+    dst=$2
+    test -L ${dst} && echo "rm -f ${dst}"
+    test -f ${dst} && echo "mv ${dst} ${dst}.bak"
+    echo "ln -s ${src} ${dst}"
+}
+
+for file in dot*
 do
-    real_name=$(echo $f | sed -e 's/^dot/./')
-    echo "copying $f to $real_name"
-    cp $f $HOME/$real_name
+    real_name=$(echo ${file} | sed -e 's/^dot/./')
+    base_name=$(basename ${real_name})
+    if [[ -f ${HOME}/${base_name} ]]; then
+        confirm "${HOME}/${base_name} already exists and is a file. Overwrite?" && \
+            install_file ${here}/${file} ${HOME}/${base_name} 
+    elif [[ -L ${HOME}/${base_name} ]]; then
+        confirm "${HOME}/${base_name} is already a link. Overwrite?" && \
+            install_file ${here}/${file} ${HOME}/${base_name} 
+    else
+        echo "Creating link ${HOME}/${base_name} to ${real_name}"
+        install_file ${here}/${file} ${HOME}/${base_name} 
+    fi
+    #cp $f $HOME/$real_name
 done
-test -d $HOME/.oh-my-zsh/ || git clone https://github.com/robbyrussell/oh-my-zsh.git $HOME/.oh-my-zsh
-cp *-theme $HOME/.oh-my-zsh/themes/
-cp -R vim $HOME/.vim
+#test -d $HOME/.oh-my-zsh/ || git clone https://github.com/robbyrussell/oh-my-zsh.git $HOME/.oh-my-zsh
+#cp *-theme $HOME/.oh-my-zsh/themes/
+#cp -R vim $HOME/.vim
