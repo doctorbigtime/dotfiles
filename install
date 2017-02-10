@@ -18,9 +18,9 @@ function confirm {
 function install_file {
     src=$1
     dst=$2
-    test -L ${dst} && echo "rm -f ${dst}"
-    test -f ${dst} && echo "mv ${dst} ${dst}.bak"
-    echo "ln -s ${src} ${dst}"
+    test -L ${dst} && rm -f ${dst}
+    test -f ${dst} && mv ${dst} ${dst}.bak
+    ln -s ${src} ${dst}
 }
 
 for file in dot*
@@ -39,6 +39,6 @@ do
     fi
     #cp $f $HOME/$real_name
 done
-#test -d $HOME/.oh-my-zsh/ || git clone https://github.com/robbyrussell/oh-my-zsh.git $HOME/.oh-my-zsh
-#cp *-theme $HOME/.oh-my-zsh/themes/
-#cp -R vim $HOME/.vim
+test -d $HOME/.oh-my-zsh/ || git clone https://github.com/robbyrussell/oh-my-zsh.git $HOME/.oh-my-zsh
+cp *-theme $HOME/.oh-my-zsh/themes/
+cp -R vim $HOME/.vim
