@@ -8,8 +8,9 @@ set ai
 set nu
 set hlsearch
 set expandtab
-"color elflord
 colorscheme molokai
+
+execute pathogen#infect()
 
 runtime! ftplugin/man.vim
 
@@ -19,13 +20,24 @@ nnoremap <F3> :Regrep<CR>
 let python_highlight_all=1
 let c_no_curly_error=1
 let $PAGER=''
-let g:vimwiki_list = [{'path': '~/Documents/vimwiki/', 'path_html': '~/Documents/vimwiki_html/'}]
 
-set tags=./tags,/home/sfortas/prod/Enterprise/VC/tags
-set path+=/home/sfortas/prod/Enterprise/VC/
+set tags=./tags,/home/sfortas/git/src/tags
+set path+=/home/sfortas/git/src
 nnoremap <c-]> g<c-]>
 vnoremap <c-]> g<c-]>
 nnoremap <c-w><c-]> <c-w>g<c-]>
 vnoremap <c-w><c-]> <c-w>g<c-]>
 "nnoremap g<c-]> <c-]>
 "vnoremap g<c-]> <c-]>
+
+" bufferline
+let g:bufferline_active_buffer_left = '['
+let g:bufferline_active_buffer_right = ']'
+
+" airline
+let g:airline_theme='seb'
+let g:airline#extensions#bufferline#enabled = 1
+let g:airline#extensions#bufferline#overwrite_variables = 1
+let g:airline#extensions#whitespace#enabled = 0
+set laststatus=2
+
