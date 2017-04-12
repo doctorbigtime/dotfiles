@@ -66,5 +66,6 @@ export PATH=$HOME/bin:/usr/local/bin:$PATH
 
 # ssh
 # export SSH_KEY_PATH="~/.ssh/dsa_id"
-export TERM=xterm-256color
-[[ -f $HOME/.dircolors ]] && eval `dircolors $HOME/.dircolors`
+#export TERM=xterm-256color
+#[[ -f $HOME/.dircolors ]] && eval `dircolors $HOME/.dircolors`
+[[ -f ${HOME}/.env ]] && source ${HOME}/.env
