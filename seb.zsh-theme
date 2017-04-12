@@ -33,7 +33,7 @@ function zle-line-finish {
 zle -N zle-line-finish
 
 setopt prompt_subst
-PROMPT='%B%F{white}[%{[38;5;111m%}%m%F{white}:%{[38;5;111m%}%d%F{white}]${vcs_info_msg_0_}%B%F{yellow} %{$reset_color%} $vim_mode
+PROMPT='%B%F{white}[%{[38;5;49m%}%m%F{white}:%{[38;5;37m%}%d%F{white}]${vcs_info_msg_0_}%B%F{yellow} %{$reset_color%} $vim_mode
 %% '
 
 autoload -U add-zsh-hook
