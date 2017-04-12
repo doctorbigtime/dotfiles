@@ -41,3 +41,7 @@ let g:airline#extensions#bufferline#overwrite_variables = 1
 let g:airline#extensions#whitespace#enabled = 0
 set laststatus=2
 
+function! AirlineInit()
+    let g:airline_section_z = ''
+endfunction
+autocmd User AirlineAfterInit call AirlineInit()
