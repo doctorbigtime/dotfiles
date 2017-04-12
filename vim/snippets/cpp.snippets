@@ -1,3 +1,12 @@
+# #include <...>
+snippet inc
+	#include <${1:iostream}>${2}
+# range for
+snippet forr
+	for(${1} : ${2})
+	{
+		${3:// code}
+	}
 # Read File Into Vector
 snippet readfile
 	std::vector<char> v;
@@ -28,3 +37,13 @@ snippet cl
 	private:
 		${3:/* data */}
 	};
+snippet te
+	template <typename ${1}> ${2}
+snippet tp
+	typename ${1}
+snippet us
+	using ${1:my_type_t} = ${2:int};
+snippet str
+	std::string ${1:var};${2}
+snippet cout
+	std::cout << ${1} << std::endl;

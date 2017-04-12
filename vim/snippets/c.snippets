@@ -6,7 +6,7 @@ snippet main
 		return 0;
 	}
 # #include <...>
-snippet inc
+snippet incl
 	#include <${1:stdio}.h>${2}
 # #include "..."
 snippet Inc
@@ -56,18 +56,15 @@ snippet do
 	} while (${1:/* condition */});
 # While Loop
 snippet wh
-	while (${1:/* condition */}) {
+	while (${1:/* condition */}) 
+	{
 		${2:/* code */}
 	}
 # For Loop
 snippet for
-	for (${2:i} = 0; $2 < ${1:count}; $2${3:++}) {
+	for (${2:i} = 0; $2 < ${1:count}; $2${3:++}) 
+	{
 		${4:/* code */}
-	}
-# Custom For Loop
-snippet forr
-	for (${1:i} = ${2:0}; ${3:$1 < 10}; $1${4:++}) {
-		${5:/* code */}
 	}
 # Function
 snippet fun
