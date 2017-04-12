@@ -1,0 +1,7 @@
+[user]
+	email = sebastien@fortas.org
+	name = Sebastien Fortas
+[diff]
+	tool = vimdiff
+[difftool]
+	prompt = false
