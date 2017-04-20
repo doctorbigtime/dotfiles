@@ -1,3 +1,10 @@
+# main()
+snippet main
+	auto main(int argc, char**argv) -> int
+	{
+		${1}
+		return 0;
+	}
 # #include <...>
 snippet inc
 	#include <${1:iostream}>${2}
@@ -25,8 +32,8 @@ snippet vector
 # Namespace
 snippet ns
 	namespace ${1:`Filename('', 'my')`} {
-		${2}
-	} /* $1 */
+	${2}
+	} // namespace ${1}
 # Class
 snippet cl
 	class ${1:`Filename('$1_t', 'name')`} {
@@ -35,15 +42,33 @@ snippet cl
 		virtual ~$1 ();
 	
 	private:
-		${3:/* data */}
+		${3}
 	};
 snippet te
 	template <typename ${1}> ${2}
 snippet tp
 	typename ${1}
+snippet au
+	auto ${1:var}
 snippet us
 	using ${1:my_type_t} = ${2:int};
 snippet str
-	std::string ${1:var};${2}
+	std::string ${1:var}
 snippet cout
 	std::cout << ${1} << std::endl;
+snippet endl
+	std::endl
+snippet shar
+	std::shared_ptr<${1:Type}> ${2:name}
+snippet uni
+	std::unique_ptr<${1:Type}> ${2:name}
+snippet mks
+	std::make_shared<${1:Type}>(${2:args})
+snippet push
+	push_back(${1:args})
+snippet empl
+	emplace_back(${1:args})
+snippet ins
+	insert(${1:args})
+snippet era
+	erase(${1:args})
