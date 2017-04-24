@@ -30,6 +30,16 @@ vnoremap <c-w><c-]> <c-w>g<c-]>
 "nnoremap g<c-]> <c-]>
 "vnoremap g<c-]> <c-]>
 
+function! BuildCPP()
+  let l:old_makeprg=&makeprg
+  set makeprg=g++\ -g\ -std=c++1y\ %\ -o\ %:r
+  make | cwindow
+  "exec '!g++ -std=c++1y '.shellescape('%').' -o '.shellescape('%:r')
+  set makeprg=l:old_makeprg
+endfunction
+command! -nargs=0 Make call BuildCPP()
+nnoremap <F9> :Make<CR>
+
 " bufferline
 let g:bufferline_active_buffer_left = '['
 let g:bufferline_active_buffer_right = ']'

@@ -797,6 +797,13 @@ if !exists("cpp_no_cpp11")
     syntax keyword cppSTLconstant piecewise_construct
     syntax keyword cppSTLtype piecewise_construct_t
 
+    " utility
+    syntax keyword cppSTLtype integer_sequence
+    syntax keyword cppSTLtype make_integer_sequence
+    syntax keyword cppSTLtype index_sequence
+    syntax keyword cppSTLtype index_sequence_for
+    syntax keyword cppSTLtype make_index_sequence
+
     " memory
     syntax keyword cppSTLtype unique_ptr
     syntax keyword cppSTLtype shared_ptr
