@@ -67,9 +67,33 @@ syntax keyword cppGtestMacro    SUCCEED
 syntax keyword cppGtestMacro    FAIL
 syntax keyword cppGtestMacro    SCOPED_TRACE
 
+syntax keyword cppGtestMacro    MOCK_METHOD0
+syntax keyword cppGtestMacro    MOCK_METHOD1
+syntax keyword cppGtestMacro    MOCK_METHOD2
+syntax keyword cppGtestMacro    MOCK_METHOD3
+syntax keyword cppGtestMacro    MOCK_METHOD4
+syntax keyword cppGtestMacro    MOCK_METHOD5
+syntax keyword cppGtestMacro    MOCK_METHOD6
+syntax keyword cppGtestMacro    MOCK_METHOD7
+syntax keyword cppGtestMacro    MOCK_METHOD8
+syntax keyword cppGtestMacro    MOCK_METHOD9
+syntax keyword cppGtestMacro    MOCK_CONST_METHOD0
+syntax keyword cppGtestMacro    MOCK_CONST_METHOD1
+syntax keyword cppGtestMacro    MOCK_CONST_METHOD2
+syntax keyword cppGtestMacro    MOCK_CONST_METHOD3
+syntax keyword cppGtestMacro    MOCK_CONST_METHOD4
+syntax keyword cppGtestMacro    MOCK_CONST_METHOD5
+syntax keyword cppGtestMacro    MOCK_CONST_METHOD6
+syntax keyword cppGtestMacro    MOCK_CONST_METHOD7
+syntax keyword cppGtestMacro    MOCK_CONST_METHOD8
+syntax keyword cppGtestMacro    MOCK_CONST_METHOD9
+
+syntax keyword cppGtestMacro    EXPECT_CALL
+
 syntax keyword cppGtestType     Test
 syntax keyword cppGtestType     Environment
 syntax keyword cppGtestType     WithParamInterface
+syntax keyword cppGtestType     InSequence
 
 syntax keyword cppGtestFunction ExitedWithCode
 syntax keyword cppGtestFunction KilledBySignal
@@ -77,6 +101,14 @@ syntax keyword cppGtestFunction RecordProperty
 syntax keyword cppGtestFunction SetUp
 syntax keyword cppGtestFunction TearDown
 syntax keyword cppGtestFunction AddGlobalTestEnvironment
+
+syntax keyword cppGtestFunction AtLeast
+syntax keyword cppGtestFunction Times
+syntax keyword cppGtestFunction Return
+syntax keyword cppGtestFunction WillOnce
+syntax keyword cppGtestFunction WillRepeatedly
+syntax keyword cppGtestFunction RetiresOnSaturation
+syntax keyword cppGtestFunction InitGoogleMock
 
 " Default highlighting
 if version >= 508 || !exists("did_cpp_syntax_inits")

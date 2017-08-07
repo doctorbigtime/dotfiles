@@ -10,6 +10,7 @@
 " should not be hightlighted.
 "
 " This list is not complete yet. Your contribution is welcome!
+syntax keyword cppSTLconstant __PRETTY_FUNCTION__
 
 syntax keyword cppSTLconstant badbit
 syntax keyword cppSTLconstant cerr
@@ -869,6 +870,7 @@ if !exists("cpp_no_cpp11")
     syntax keyword cppSTLtype time_point
     syntax keyword cppSTLcast duration_cast
     syntax keyword cppSTLcast time_point_cast
+    syntax keyword cppSTLcast chrono_literals
 
     " tuple
     syntax keyword cppSTLtype tuple

@@ -14,6 +14,9 @@ snippet forr
 	{
 		${3:// code}
 	}
+# for_each
+snippet fore
+	std::for_each(${1:begin}, ${2:end}, ${3:lambda});
 # Read File Into Vector
 snippet readfile
 	std::vector<char> v;
@@ -33,7 +36,7 @@ snippet vector
 snippet ns
 	namespace ${1:`Filename('', 'my')`} {
 	${2}
-	} // namespace ${1}
+	} // namespace $1
 # Class
 snippet cl
 	class ${1:`Filename('$1_t', 'name')`} {
@@ -46,6 +49,11 @@ snippet cl
 	};
 snippet te
 	template <typename ${1}> ${2}
+snippet tes
+	template <typename ${1:T}>
+	struct ${2:name}
+	{
+	};
 snippet tp
 	typename ${1}
 snippet au
@@ -62,8 +70,10 @@ snippet shar
 	std::shared_ptr<${1:Type}> ${2:name}
 snippet uni
 	std::unique_ptr<${1:Type}> ${2:name}
+snippet mku
+	std::make_unique<${1:Type}>(${2:args});
 snippet mks
-	std::make_shared<${1:Type}>(${2:args})
+	std::make_shared<${1:Type}>(${2:args});
 snippet push
 	push_back(${1:args})
 snippet empl
