@@ -1,1 +1,0 @@
-/home/sfortas/git/vim-pathogen/autoload/pathogen.vim
