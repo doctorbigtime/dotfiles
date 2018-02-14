@@ -8,15 +8,8 @@ snippet main
 # #include <...>
 snippet inc
 	#include <${1:iostream}>${2}
-# range for
-snippet forr
-	for(${1} : ${2})
-	{
-		${3:// code}
-	}
-# for_each
-snippet fore
-	std::for_each(${1:begin}, ${2:end}, ${3:lambda});
+snippet incb
+	#include <boost/${1:range/adaptor/map.hpp}>${2}
 # Read File Into Vector
 snippet readfile
 	std::vector<char> v;
@@ -26,12 +19,35 @@ snippet readfile
 			v.insert(v.end(), buf, buf + len);
 		fclose($2);
 	}${3}
-# std::map
+# testing
+snippet testfile
+	#include <gtest/gtest.h>
+	#include <gtest/gmock.h>
+
+	using ::testing::_;
+	using ::testing::Return;
+	using ::testing::ReturnRef;
+	using ::testing::Invoke;
+	using ::testing::InvokeWithoutArgs;
+	using ::testing::Eq;
+	using ::testing::Ref;
+	using ::testing::NiceMock;
+	using ::testing::StrictMock;
+
+	TEST(${1:test_thing}, ${2:thing})
+	{
+	}
+# common stl containers
 snippet map
-	std::map<${1:key}, ${2:value}> map${3};
-# std::vector
-snippet vector
-	std::vector<${1:char}> v${2};
+	std::map<${1:key}, ${2:value}> ${3};
+snippet umap
+	std::unordered_map<${1:key}, ${2:value}> ${3};
+snippet pq
+	std::priority_queue<${1:thing}, std::vector<${1}>, ${2:comparator}> ${3};
+snippet set
+	std::set<${1:std::string}> ${2};
+snippet vec
+	std::vector<${1:std::string}> ${2};
 # Namespace
 snippet ns
 	namespace ${1:`Filename('', 'my')`} {
@@ -47,6 +63,7 @@ snippet cl
 	private:
 		${3}
 	};
+# Templates
 snippet te
 	template <typename ${1}> ${2}
 snippet tes
@@ -56,29 +73,80 @@ snippet tes
 	};
 snippet tp
 	typename ${1}
-snippet au
-	auto ${1:var}
 snippet us
 	using ${1:my_type_t} = ${2:int};
+# Access
+snippet pub
+	public:
+snippet pri
+	private:
+snippet pro
+	protected:
+# Casts
+snippet dca
+	dynamic_cast<${1:To}>(${2:expr})${3}
+snippet sca
+	static_cast<${1:To}>(${2:expr})${3}
+snippet cca
+	const_cast<${1:To}>(${2:expr})${3}
+snippet rca
+	reinterpret_cast<${1:To}>(${2:expr})${3}
+snippet duca
+	std::chrono::duration_cast<std::chrono::${1:nanoseconds}>(${2:src})
+# Iteration
+snippet fori
+	for(auto ${2:i} = 0u; $2 < ${1:count}; $2${3:++})
+	{
+		${4}
+	}
+snippet forr
+	for(${1:auto} ${2:const&} ${3:obj} : ${4:range})
+	{
+		${5:// code}
+	}
+snippet fore
+	std::for_each(${1:begin}, ${2:end}, ${3:lambda});
+# lambdas
+snippet ld
+	[${1:capture}](${2:args}){${3:code}};
+# declarations/misc
+snippet chr
+	std::chrono${1}
+snippet func
+	std::function<${1:proto}>
+snippet au
+	auto ${1:var}
+snippet k
+	const${1}
 snippet str
 	std::string ${1:var}
 snippet cout
 	std::cout << ${1} << std::endl;
 snippet endl
 	std::endl
-snippet shar
-	std::shared_ptr<${1:Type}> ${2:name}
-snippet uni
-	std::unique_ptr<${1:Type}> ${2:name}
-snippet mku
-	std::make_unique<${1:Type}>(${2:args});
-snippet mks
-	std::make_shared<${1:Type}>(${2:args});
-snippet push
+snippet pb
 	push_back(${1:args})
-snippet empl
+snippet eb
 	emplace_back(${1:args})
 snippet ins
 	insert(${1:args})
 snippet era
 	erase(${1:args})
+snippet ite
+	iterator${1}
+snippet cit
+	const_iterator${1}
+snippet lit
+	using namespace std::chrono_literals;
+	using namespace std::literals::string_literals;
+snippet bins
+	std::back_inserter(${1:thing})
+snippet oss
+	std::ostringstream ${1:oss}
+snippet throw
+	throw ${1:std::logic_error}("${2:msg}");
+snippet printer
+	std::basic_ostream<T>& operator<<(std::basic_ostream<T>& os, ${1:thing} const& obj)
+	{
+		return os << ${2:obj};
+	}

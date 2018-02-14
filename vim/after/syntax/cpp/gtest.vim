@@ -89,11 +89,20 @@ syntax keyword cppGtestMacro    MOCK_CONST_METHOD8
 syntax keyword cppGtestMacro    MOCK_CONST_METHOD9
 
 syntax keyword cppGtestMacro    EXPECT_CALL
+syntax keyword cppGtestMacro    ON_CALL
 
 syntax keyword cppGtestType     Test
 syntax keyword cppGtestType     Environment
 syntax keyword cppGtestType     WithParamInterface
 syntax keyword cppGtestType     InSequence
+syntax keyword cppGtestType     InvokeWithoutArgs
+syntax keyword cppGtestType     Invoke
+syntax keyword cppGtestType     Ref
+syntax keyword cppGtestType     NiceMock
+syntax keyword cppGtestType     StrictMock
+syntax keyword cppGtestType     Return
+syntax keyword cppGtestType     ReturnRef
+syntax keyword cppGtestType     Const
 
 syntax keyword cppGtestFunction ExitedWithCode
 syntax keyword cppGtestFunction KilledBySignal
@@ -104,9 +113,9 @@ syntax keyword cppGtestFunction AddGlobalTestEnvironment
 
 syntax keyword cppGtestFunction AtLeast
 syntax keyword cppGtestFunction Times
-syntax keyword cppGtestFunction Return
 syntax keyword cppGtestFunction WillOnce
 syntax keyword cppGtestFunction WillRepeatedly
+syntax keyword cppGtestFunction WillByDefault
 syntax keyword cppGtestFunction RetiresOnSaturation
 syntax keyword cppGtestFunction InitGoogleMock
 
