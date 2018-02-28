@@ -34,13 +34,12 @@ Plug 'tpope/vim-commentary'
 Plug 'vim-scripts/Align'
 Plug 'benmills/vimux'
 Plug 'juneedahamed/svnj.vim'
+Plug 'octol/vim-cpp-enhanced-highlight'
 if v:version >= 800
-    Plug 'fatih/vim-go'
     Plug 'prabirshrestha/async.vim'
     Plug 'prabirshrestha/vim-lsp'
     Plug 'prabirshrestha/asyncomplete.vim'
     Plug 'prabirshrestha/asyncomplete-lsp.vim'
-    Plug 'djmoch/vim-makejob'
     Plug 'skywind3000/asyncrun.vim'
 endif
 
@@ -68,7 +67,13 @@ inoremap <C-@> <C-x><C-o>
 " Utility functions
 function! BuildCPP()
     if v:version >= 800
-        AsyncRun g++ -g -Wall -pthread -std=c++1y % -o %:r 
+        if(!empty(glob(expand('%:p:h') . '/Makefile')))
+            AsyncRun make -j10
+        elseif(!empty(glob(expand('%:p:h') . '/build/Makefile')))
+            AsyncRun make -C build -j10
+        else
+            AsyncRun g++ -g -Wall -pthread -std=c++1y % -o %:r 
+        endif
         copen
     else
         let l:old_makeprg=&makeprg
@@ -79,6 +84,17 @@ function! BuildCPP()
 endfunction
 command! -nargs=0 Make call BuildCPP()
 nnoremap <F9> :Make<CR>
+
+function! Rebuild()
+    if v:version >= 800
+        if(empty(glob(expand('%:p:h') . '/CMakeLists.txt')))
+            echo "No CMakeLists.txt in directory."
+            return
+        endif
+        AsyncRun mkdir -p build; cd build; cmake -DCMAKE_BUILD_TYPE=Debug ..; make -j10
+        copen
+    endif
+endfunction
 
 function! BuildM2()
     if v:version >= 800
@@ -95,6 +111,7 @@ let g:bufferline_active_buffer_right = ']'
 
 " airline
 let g:airline_theme='seb'
+let g:airline_powerline_fonts = 1
 let g:airline#extensions#bufferline#enabled = 1
 let g:airline#extensions#bufferline#overwrite_variables = 1
 let g:airline#extensions#whitespace#enabled = 0
@@ -109,7 +126,7 @@ autocmd User AirlineAfterInit call AirlineInit()
 "let g:lsp_log_verbose = 1
 "let g:lsp_log_file = expand('~/vim-lsp.log')
 
-if v:version > 800 && executable('cquery')
+if v:version >= 800 && executable('cquery')
     au User lsp_setup call lsp#register_server({
         \ 'name': 'cquery',
         \ 'cmd': {server_info->['cquery']},
@@ -118,9 +135,8 @@ if v:version > 800 && executable('cquery')
         \ 'whitelist': ['c', 'cc', 'cpp', 'objc', 'objcpp'],
         \ })
     autocmd FileType cpp setlocal omnifunc=lsp#complete
+    noremap <silent> gd :LspDefinition<CR>
+    noremap <silent> <F2> :LspRename<CR>
+    noremap <silent> gr :LspReferences<CR>
 endif
-
-noremap <silent> gd :LspDefinition<CR>
-noremap <silent> <F2> :LspRename<CR>
-noremap <silent> gr :LspReferences<CR>
 
