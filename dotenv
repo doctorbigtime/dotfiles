@@ -4,4 +4,3 @@ export EDITOR=vim
 [[ -f $HOME/.dircolors ]] && eval `dircolors $HOME/.dircolors`
 export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/opt/lib
 ulimit -c unlimited
-export PATH=/opt/java/bin:$PATH

@@ -11,6 +11,8 @@ syntax keyword cppGtestMacro    TEST_F
 
 syntax keyword cppGtestMacro    RUN_ALL_TESTS
 
+syntax keyword cppGtestMacro    FRIEND_TEST
+
 syntax keyword cppGtestMacro    ASSERT_EQ
 syntax keyword cppGtestMacro    ASSERT_NE
 syntax keyword cppGtestMacro    ASSERT_GT
@@ -90,6 +92,8 @@ syntax keyword cppGtestMacro    MOCK_CONST_METHOD9
 
 syntax keyword cppGtestMacro    EXPECT_CALL
 syntax keyword cppGtestMacro    ON_CALL
+syntax keyword cppGtestMacro    EXPECT_THAT
+syntax keyword cppGtestMacro    ASSERT_THAT
 
 syntax keyword cppGtestType     Test
 syntax keyword cppGtestType     Environment
@@ -113,6 +117,25 @@ syntax keyword cppGtestFunction AddGlobalTestEnvironment
 
 syntax keyword cppGtestFunction AtLeast
 syntax keyword cppGtestFunction Times
+syntax keyword cppGtestFunction Return
+syntax keyword cppGtestFunction ReturnArg
+syntax keyword cppGtestFunction ReturnNew
+syntax keyword cppGtestFunction ReturnNull
+syntax keyword cppGtestFunction ReturnPointee
+syntax keyword cppGtestFunction ReturnRef
+syntax keyword cppGtestFunction ReturnRefOfCopy
+syntax keyword cppGtestFunction Assign
+syntax keyword cppGtestFunction DeleteArg
+syntax keyword cppGtestFunction SaveArg
+syntax keyword cppGtestFunction SaveArgPointee
+syntax keyword cppGtestFunction SetArgReferee
+syntax keyword cppGtestFunction SetArgumentPointee
+syntax keyword cppGtestFunction SetArrayArgument
+syntax keyword cppGtestFunction SetErrnoAndReturn
+syntax keyword cppGtestFunction Throw
+syntax keyword cppGtestFunction Invoke
+syntax keyword cppGtestFunction InvokeWithoutArgs
+syntax keyword cppGtestFunction InvokeArgument
 syntax keyword cppGtestFunction WillOnce
 syntax keyword cppGtestFunction WillRepeatedly
 syntax keyword cppGtestFunction WillByDefault
