@@ -1,0 +1,155 @@
+#!/bin/bash
+
+barh=24
+rrate=".2s"
+p="  "
+iconfont="FontAwesome:style=Regular"
+#font="Liberation Mono for Powerline:style=Regular"
+font="Space Mono for Powerline:style=Bold"
+
+CURRENT_BG='NONE'
+SEGMENT_SEPARATOR=$'\ue0b0'
+
+#bg="%{B#b58900}"
+br="%{B-}"
+txt="%{F#fff}"
+
+typeset -A colors
+colors=(
+[brcyan]='#93a1a1' 
+[brgreen]='#586e75' 
+[green]='#859900' 
+[bryellow]='#657b83' 
+[yellow]='#b58900' 
+[blue]='#268bd2' 
+[black]='#002b36' 
+[red]='#dc322f'
+[white]='#eee8d5'
+)
+
+segment() {
+    local bg fg
+    bg=${colors[$1]}
+    fg=${colors[$2]}
+    if [[ $CURRENT_BG != 'NONE' && $1 != $CURRENT_BG ]]; then
+        echo -n " %{F$CURRENT_BG}%{B${bg}}${SEGMENT_SEPARATOR}%{F${fg}} "
+    else
+        echo -n "%{B${bg}}%{F${fg}} "
+    fi
+    CURRENT_BG=$bg
+}
+
+end_bar() {
+    echo -n " %{F$CURRENT_BG}%{B-}${SEGMENT_SEPARATOR}"
+}
+
+desktop() {
+    current=$(xprop -root _NET_CURRENT_DESKTOP | awk '{ print $NF }')
+    segment black bryellow
+    if [ $current -eq 0 ]; then
+        echo -ne "%{R}left%{R}|right"
+    else
+        echo -ne "left|%{R}right%{R}"
+    fi
+}
+
+network() {
+    id=$(iwgetid -r)
+    segment blue black
+    if [ "${id}" == "" ]; then
+        echo -n "No network"
+    else
+        echo -ne "\uf1eb ${id}"
+    fi
+}
+
+hwmon() {
+    let cpu_temp=$(cat /sys/class/hwmon/hwmon3/temp1_input)/1000
+    rpm=$(cat /sys/class/hwmon/hwmon3/fan1_input)
+    segment brcyan white
+    echo -ne "\uf2c9 $cpu_temp°|\uf110 $rpm RPM"
+}
+
+brightness() {
+    current=$(cat /sys/class/backlight/intel_backlight/brightness)
+    max=$(cat /sys/class/backlight/intel_backlight/max_brightness)
+    percent=$(bc <<< "scale=2; $current/$max*100.0")
+    segment brgreen black
+    echo -ne "\uf26c $percent%"
+}
+
+sound() {
+    sound_on=$(pactl list sinks short | awk '{ print $NF }')
+    volume=$(pactl list sinks | grep '^[[:space:]]Volume:' | sed -e 's,.* \([0-9][0-9]*\)%.*,\1,')
+    # pactl set-sink-volume alsa_output.pci-0000_00_1b.0.analog-stereo 30\%
+    segment green black
+    ico="\uf026"
+    if [ "$sound_on" == "RUNNING" ]; then
+        ico="\uf028"
+    fi
+    echo -ne "$ico $volume%"
+}
+
+battery() {
+    percent=$(cat /sys/class/power_supply/BAT0/capacity)
+    power=$(cat /sys/class/power_supply/BAT0/status)
+
+    segment yellow black
+    if [[ $power == "Charging" || $power == "Unknown" ]]; then
+        echo -ne "\uf1e6 $percent%"
+    else
+        # icons...
+        ico="\uf244"
+        if [ $percent -gt 87 ]; then
+            ico="\uf240"
+        elif [ $percent -gt 62 ]; then
+            ico="\uf241"
+        elif [ $percent -gt 37 ]; then
+            ico="\uf242"
+        else
+            ico="\uf243"
+        fi
+        echo -ne "${ico} $percent%"
+    fi
+}
+
+clock() {
+    #echo -e "%{F#ff0000}----[${txt} \uf017 $(date '+%a %d %b, %T') %{F#ff0000}]----${txt}"
+    segment black bryellow
+    echo -ne "\uf017 $(date '+%a %d %b, %T')"
+}
+
+power() {
+    CURRENT_BG='NONE'
+    segment red black
+    echo -ne "%{r}%{A:qdbus org.kde.ksmserver /KSMServer logout 0 0 0:}\uf011%{A}"
+}
+
+build_bar () {
+    declare -g CURRENT_BG='NONE'
+    echo -en "%{l}"
+    desktop
+    hwmon
+    brightness
+    network
+    battery
+    sound
+    clock
+    end_bar
+    #power
+    echo ""
+}
+
+loop() {
+    while true; do
+        build_bar
+        sleep "$rrate"
+    done | lemonbar \
+        -f "$font" \
+        -f "$iconfont" \
+        -g "x$barh" \
+        -b | bash
+}
+
+loop
+
