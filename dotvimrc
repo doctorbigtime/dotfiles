@@ -8,7 +8,7 @@ set ai
 set nu
 set hlsearch
 set expandtab
-colorscheme molokai
+"colorscheme molokai
 
 " automatically install pathogen / plug
 if empty(glob('~/.vim/autoload/pathogen.vim'))
@@ -33,9 +33,13 @@ Plug 'tpope/vim-surround'
 Plug 'tpope/vim-commentary'
 Plug 'vim-scripts/Align'
 Plug 'benmills/vimux'
-Plug 'juneedahamed/svnj.vim'
 Plug 'octol/vim-cpp-enhanced-highlight'
 Plug 'scrooloose/nerdtree'
+Plug 'vim-airline/vim-airline'
+Plug 'vim-airline/vim-airline-themes'
+Plug 'bling/vim-bufferline'
+Plug 'altercation/vim-colors-solarized'
+Plug 'kien/ctrlp.vim'
 if v:version >= 800
     Plug 'prabirshrestha/async.vim'
     Plug 'prabirshrestha/vim-lsp'
@@ -96,6 +100,11 @@ function! Rebuild()
         copen
     endif
 endfunction
+function! Build()
+    AsyncRun make -C build
+    copen
+endfunction
+command! -nargs=0 Mk call Build()
 
 function! BuildM2()
     if v:version >= 800
@@ -107,15 +116,22 @@ endfunction
 command! -nargs=0 M2 call BuildM2()
 
 " bufferline
-let g:bufferline_active_buffer_left = '['
-let g:bufferline_active_buffer_right = ']'
+let g:bufferline_active_buffer_left = '>>'
+let g:bufferline_active_buffer_right = '<<'
+"let g:bufferline_echo = 1
+"let g:bufferline_inactive_highlight = 'StatusLine'
+"let g:bufferline_active_highlight = 'StatusLine'
+"let g:bufferline_echo = 0
+"autocmd VimEnter *
+"    \ let &statusline='%{bufferline#refresh_status()}'
+"        \ .bufferline#get_status_string()
 
-" airline
-let g:airline_theme='seb'
-let g:airline_powerline_fonts = 1
-let g:airline#extensions#bufferline#enabled = 1
-let g:airline#extensions#bufferline#overwrite_variables = 1
-let g:airline#extensions#whitespace#enabled = 0
+let g:airline_theme='solarized'
+let g:airline_powerline_fonts=1
+let g:airline_extensions = ['bufferline']
+let g:airline#extensions#bufferline#enabled=1
+let g:airline#extensions#bufferline#overwrite_variables=1
+let g:airline#extensions#whitespace#enabled=0
 set laststatus=2
 
 function! AirlineInit()
@@ -144,3 +160,9 @@ if v:version >= 800 && executable('cquery')
     noremap <silent> gr :LspReferences<CR>
 endif
 
+noremap <silent> gd :LspDefinition<CR>
+noremap <silent> <F2> :LspRename<CR>
+noremap <silent> gr :LspReferences<CR>
+
+set background=dark
+colorscheme solarized
