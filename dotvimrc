@@ -35,6 +35,7 @@ Plug 'vim-scripts/Align'
 Plug 'benmills/vimux'
 Plug 'juneedahamed/svnj.vim'
 Plug 'octol/vim-cpp-enhanced-highlight'
+Plug 'scrooloose/nerdtree'
 if v:version >= 800
     Plug 'prabirshrestha/async.vim'
     Plug 'prabirshrestha/vim-lsp'
@@ -121,6 +122,9 @@ function! AirlineInit()
     let g:airline_section_z = ''
 endfunction
 autocmd User AirlineAfterInit call AirlineInit()
+
+" NERDTree
+map <C-n> :NERDTreeToggle<CR>
 
 " lsp/cquery
 "let g:lsp_log_verbose = 1
