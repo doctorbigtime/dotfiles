@@ -43,7 +43,33 @@ end_bar() {
     echo -n " %{F$CURRENT_BG}%{B-}${SEGMENT_SEPARATOR}"
 }
 
+desktop_i3() {
+    query=$(xprop -root _NET_DESKTOP_NAMES | awk -F" = " '{ print $2 }')
+    in=$(tr -d '"' <<< ${query//, /;})
+    IFS_bak=${IFS}
+    IFS=\; desktops=($in)
+    IFS=${IFS_bak}
+    numDesktops=${#desktops[@]}
+    current=$(xprop -root _NET_CURRENT_DESKTOP | awk '{ print $NF }')
+    segment black bryellow
+    for (( i=0; i<numDesktops; i++ ))
+    do
+        if [ $i -ne 0 ]; then
+            echo -ne "|"
+        fi
+        if [ $i -eq $current ]; then
+            echo -ne "%{R}${desktops[$i]}%{R}"
+        else
+            echo -ne "${desktops[$i]}"
+        fi
+    done
+}
+
 desktop() {
+    if ps -usfortas | grep -q "\<i3\>"; then
+        desktop_i3
+        return
+    fi
     current=$(xprop -root _NET_CURRENT_DESKTOP | awk '{ print $NF }')
     segment black bryellow
     if [ $current -eq 0 ]; then
@@ -61,6 +87,13 @@ network() {
     else
         echo -ne "\uf1eb ${id}"
     fi
+}
+
+cpu() {
+    percent=$(cat /tmp/last_cpu.txt)
+    segment brgreen black
+    #echo -ne "\uf2db ${percent}"
+    echo -ne "\uf1fe ${percent}%"
 }
 
 hwmon() {
@@ -129,6 +162,7 @@ build_bar () {
     declare -g CURRENT_BG='NONE'
     echo -en "%{l}"
     desktop
+    cpu
     hwmon
     brightness
     network
@@ -144,12 +178,13 @@ loop() {
     while true; do
         build_bar
         sleep "$rrate"
-    done | lemonbar \
+    done | $HOME/bin/lemonbar \
         -f "$font" \
         -f "$iconfont" \
-        -g "x$barh" \
-        -b | bash
-}
-
+        -g "x$barh" | bash
+} 
+if [ -x ${HOME}/bin/cpu_usage ]; then
+    ${HOME}/bin/cpu_usage &
+fi
 loop
 
