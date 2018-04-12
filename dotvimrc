@@ -77,7 +77,7 @@ function! BuildCPP()
         elseif(!empty(glob(expand('%:p:h') . '/build/Makefile')))
             AsyncRun make -C build -j10
         else
-            AsyncRun g++ -g -Wall -pthread -std=c++1y % -o %:r 
+            AsyncRun g++ -g -Wall -pthread -std=c++1y % -o %:r  -lboost_system
         endif
         copen
     else
@@ -143,15 +143,22 @@ autocmd User AirlineAfterInit call AirlineInit()
 map <C-n> :NERDTreeToggle<CR>
 
 " lsp/cquery
-"let g:lsp_log_verbose = 1
-"let g:lsp_log_file = expand('~/vim-lsp.log')
+" let g:lsp_log_verbose = 1
+" let g:lsp_log_file = expand('~/vim-lsp.log')
 
 if v:version >= 800 && executable('cquery')
     au User lsp_setup call lsp#register_server({
         \ 'name': 'cquery',
         \ 'cmd': {server_info->['cquery']},
         \ 'root': {server_info->lsp#utils#path_to_uri(lsp#utils#find_nearest_parent_file_directory(lsp#utils#get_buffer_path(), 'compile_commands.json'))},
-        \ 'initialization_options': { 'cacheDirectory': '/tmp/cquery/' },
+        \ 'initialization_options': {
+            \ 'cacheDirectory': '/home/sfortas/.cquery/',
+            \ 'index': {
+                \ 'blacklist': [ 'usr', 'boost' ],
+                \ 'whitelist': [ 'boost/asio' ],
+                \ 'logSkippedPaths': 1,
+            \ }
+        \ },
         \ 'whitelist': ['c', 'cc', 'cpp', 'objc', 'objcpp'],
         \ })
     autocmd FileType cpp setlocal omnifunc=lsp#complete
