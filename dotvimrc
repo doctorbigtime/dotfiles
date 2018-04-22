@@ -116,8 +116,8 @@ endfunction
 command! -nargs=0 M2 call BuildM2()
 
 " bufferline
-let g:bufferline_active_buffer_left = '>>'
-let g:bufferline_active_buffer_right = '<<'
+"let g:bufferline_active_buffer_left = '>>'
+"let g:bufferline_active_buffer_right = '<<'
 "let g:bufferline_echo = 1
 "let g:bufferline_inactive_highlight = 'StatusLine'
 "let g:bufferline_active_highlight = 'StatusLine'
@@ -153,11 +153,6 @@ if v:version >= 800 && executable('cquery')
         \ 'root': {server_info->lsp#utils#path_to_uri(lsp#utils#find_nearest_parent_file_directory(lsp#utils#get_buffer_path(), 'compile_commands.json'))},
         \ 'initialization_options': {
             \ 'cacheDirectory': '/home/sfortas/.cquery/',
-            \ 'index': {
-                \ 'blacklist': [ 'usr', 'boost' ],
-                \ 'whitelist': [ 'boost/asio' ],
-                \ 'logSkippedPaths': 1,
-            \ }
         \ },
         \ 'whitelist': ['c', 'cc', 'cpp', 'objc', 'objcpp'],
         \ })
@@ -166,6 +161,11 @@ if v:version >= 800 && executable('cquery')
     noremap <silent> <F2> :LspRename<CR>
     noremap <silent> gr :LspReferences<CR>
 endif
+            " \ 'index': {
+            "     \ 'blacklist': [ 'usr', 'boost' ],
+            "     \ 'whitelist': [ 'boost/asio' ],
+            "     \ 'logSkippedPaths': 1,
+            " \ }
 
 noremap <silent> gd :LspDefinition<CR>
 noremap <silent> <F2> :LspRename<CR>

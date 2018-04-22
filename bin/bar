@@ -1,11 +1,11 @@
 #!/bin/bash
 
-barh=24
+barh=17
 rrate=".2s"
 p="  "
 iconfont="FontAwesome:style=Regular"
 #font="Liberation Mono for Powerline:style=Regular"
-font="Space Mono for Powerline:style=Bold"
+font="Space Mono for Powerline:style=Bold:size=10"
 
 CURRENT_BG='NONE'
 SEGMENT_SEPARATOR=$'\ue0b0'
@@ -68,7 +68,7 @@ end_bar() {
     echo -n " %{F${colors[$CURRENT_BG]}}%{B-}${SEGMENT_SEPARATOR}"
 }
 
-desktop_i3() {
+desktop() {
     query=$(xprop -root _NET_DESKTOP_NAMES | awk -F" = " '{ print $2 }')
     in=$(tr -d '"' <<< ${query//, /;})
     IFS_bak=${IFS}
@@ -90,20 +90,6 @@ desktop_i3() {
     done
 }
 
-desktop() {
-    if ps -usfortas | grep -q "\<i3\>"; then
-        desktop_i3
-        return
-    fi
-    current=$(xprop -root _NET_CURRENT_DESKTOP | awk '{ print $NF }')
-    segment
-    if [ $current -eq 0 ]; then
-        echo -ne "%{R}left%{R}|right"
-    else
-        echo -ne "left|%{R}right%{R}"
-    fi
-}
-
 network() {
     id=$(iwgetid -r)
     segment
@@ -122,10 +108,14 @@ cpu() {
 }
 
 hwmon() {
-    let cpu_temp=$(cat /sys/class/hwmon/hwmon3/temp1_input)/1000
-    rpm=$(cat /sys/class/hwmon/hwmon3/fan1_input)
-    segment
-    echo -ne "\uf2c9 $cpu_temp°|\uf110 $rpm RPM"
+    if [ "$(hostname)" = "canopus" ]; then
+        cpu_temp=$(sensors asus-isa-0000 | grep temp1 | awk '{ print $2 }')
+        fan_rpm=$(sensors asus-isa-0000 | grep RPM | awk '{ print $2 }')
+        segment
+        echo -ne "\uf2c9 $cpu_temp|\uf110 $fan_rpm RPM"
+    fi
+    #let cpu_temp=$(cat /sys/class/hwmon/hwmon3/temp1_input)/1000
+    #rpm=$(cat /sys/class/hwmon/hwmon3/fan1_input)
 }
 
 brightness() {
@@ -196,9 +186,9 @@ build_bar () {
     network
     cpu
     hwmon
-    #sound
     battery
-    #brightness
+    brightness
+    sound
     vpn
     clock
     end_bar
