@@ -32,7 +32,8 @@ scheme=(
 [black]=brgreen
 [brgreen]=blue
 [blue]=yellow
-[yellow]=black
+[yellow]=green
+[green]=black
 )
 
 typeset -A foreground
@@ -40,6 +41,7 @@ foreground=(
 [black]=bryellow
 [brgreen]=black
 [blue]=black
+[green]=black
 [yellow]=black
 )
 
