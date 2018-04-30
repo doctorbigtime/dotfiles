@@ -1,6 +1,0 @@
-defscrollback 5000
-startup_message off
-vbell off
-hardstatus on
-hardstatus alwayslastline
-hardstatus string '%{=u kG}%-Lw%{=u Gk}%50> %n*%f %t%{=u kG}%+Lw%< %{= kG}%-=%d %m/%d/%y | %C:%s %A | %1`%{-}'
