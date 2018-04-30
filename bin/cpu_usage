@@ -1,0 +1,20 @@
+#!/bin/zsh
+
+# gives the average CPU usage over $delay.
+
+delay="2"
+prev_tot_jiffies=0
+prev_work_jiffies=0
+
+while true; do
+    read tot_jiffies work_jiffies < <(cat /proc/stat |  awk '/cpu / { tot_jiffies=$2+$4+$5; work_jiffies=$2+$4 } END { print tot_jiffies, work_jiffies; }')
+    if [ $prev_tot_jiffies -ne 0 ]; then
+        work=$((work_jiffies-prev_work_jiffies))
+        total=$((tot_jiffies-prev_tot_jiffies))
+        bc <<< "scale=2; ($work*100)/$total" > /tmp/last_cpu.txt
+    fi
+    prev_tot_jiffies=$tot_jiffies
+    prev_work_jiffies=$work_jiffies
+    sleep ${delay}
+done
+
