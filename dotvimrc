@@ -109,7 +109,7 @@ function! Rebuild()
             echo "No CMakeLists.txt in directory."
             return
         endif
-        AsyncRun mkdir -p build; cd build; cmake -DCMAKE_BUILD_TYPE=Debug ..; make -j10
+        AsyncRun mkdir -p build; cd build; cmake -DCMAKE_EXPORT_COMPILE_COMMAND=ON -DCMAKE_BUILD_TYPE=Debug ..; make -j10
         copen
     endif
 endfunction
@@ -139,7 +139,9 @@ command! -nargs=0 M2 call BuildM2()
 "    \ let &statusline='%{bufferline#refresh_status()}'
 "        \ .bufferline#get_status_string()
 
-let g:airline_theme='solarized'
+"let g:airline_theme='luna'
+"let g:airline_theme='dark'
+let g:airline_theme='distinguished'
 let g:airline_powerline_fonts=1
 let g:airline_extensions = ['bufferline']
 let g:airline#extensions#bufferline#enabled=1
