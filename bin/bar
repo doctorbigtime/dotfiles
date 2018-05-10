@@ -109,18 +109,39 @@ cpu() {
     echo -ne "\uf1fe ${percent}%"
 }
 
+hwmon_watercooling() {
+    let cpu_temp=$(cat /sys/class/hwmon/hwmon0/temp2_input)/1000
+    let fan_rpm=$(cat /sys/class/hwmon/hwmon0/fan2_input)
+    let coolant_temp=$(visioncli -t2)
+    segment
+    echo -ne "\uf2c9 $cpu_temp°"
+    segment
+    echo -ne "|\uf043 $coolant_temp°"
+    segment
+    echo -ne "\uf110 $fan_rpm RPM"
+}
+
 hwmon() {
     if [ "$(hostname)" = "canopus" ]; then
         cpu_temp=$(sensors asus-isa-0000 | grep temp1 | awk '{ print $2 }')
         fan_rpm=$(sensors asus-isa-0000 | grep RPM | awk '{ print $2 }')
         segment
         echo -ne "\uf2c9 $cpu_temp|\uf110 $fan_rpm RPM"
+    elif [ "$(systemctl is-active pwmd)" = "active" ]; then
+        hwmon_watercooling
+        return
+    else
+        let cpu_temp=$(cat /sys/class/hwmon/hwmon3/temp1_input)/1000
+        rpm=$(cat /sys/class/hwmon/hwmon3/fan1_input)
+        segment
+        echo -ne "\uf2c9 $cpu_temp°|\uf110 $rpm RPM"
     fi
-    #let cpu_temp=$(cat /sys/class/hwmon/hwmon3/temp1_input)/1000
-    #rpm=$(cat /sys/class/hwmon/hwmon3/fan1_input)
 }
 
 brightness() {
+    if [ ! -d /sys/class/backlight/intel_backlight ]; then
+        return
+    fi
     current=$(cat /sys/class/backlight/intel_backlight/brightness)
     max=$(cat /sys/class/backlight/intel_backlight/max_brightness)
     percent=$(bc <<< "scale=2; $current/$max*100.0")
@@ -141,6 +162,9 @@ sound() {
 }
 
 battery() {
+    if [ ! -d /sys/class/power_supply/BAT0 ]; then
+        return
+    fi
     percent=$(cat /sys/class/power_supply/BAT0/capacity)
     power=$(cat /sys/class/power_supply/BAT0/status)
 
