@@ -1,0 +1,80 @@
+# aliases
+alias ll='ls -l'
+alias vi=vim
+
+# User configuration
+
+export PATH=$HOME/bin:/usr/local/bin:$PATH
+
+# prompt
+autoload -U colors && colors
+
+prompt_vcs() {
+    local BRANCH_CHAR="%F{yellow}%f"
+    local STAGED_CHAR="✚"
+    local UNSTAGED_CHAR="●"
+    local TAG_CHAR="⚑"
+    if $(git rev-parse --is-inside-work-tree >/dev/null 2>&1); then
+        ref=$(git symbolic-ref HEAD 2>/dev/null) || \
+            ref="$TAG_CHAR $(git describe --tags --exact-match)" || \
+            ref="➦ $(git rev-parse --short HEAD 2>/dev/null)"
+        autoload -Uz vcs_info
+
+        zstyle ':vcs_info:*' enable git
+        zstyle ':vcs_info:*' stagedstr "%F{green}✚%f"
+        zstyle ':vcs_info:*' unstagedstr "%F{yellow}●%f"
+        zstyle ':vcs_info:*' check-for-changes true
+        zstyle ':vcs_info:*' get-revision true
+        #zstyle ':vcs_info:(sv[nk]|bzr):*' branchformat '%b%F{1}:%F{11}%r'
+        if [[ -z "$(git ls-files --other --exclude-standard 2>/dev/null)" ]]; then
+            zstyle ':vcs_info:*' formats ' %c%u'
+        else
+            zstyle ':vcs_info:*' formats " %c%u%F{red}${UNSTAGED_CHAR}%f"
+        fi
+        vcs_info
+        echo -n "[${ref/refs\/heads\//${BRANCH_CHAR} }${vcs_info_msg_0_}]"
+    fi
+}
+
+prompt_context() {
+    color1="%{[38;5;49m%}"
+    color2="%{[38;5;37m%}"
+    echo -n "%F{white}[${color1}%m%F{white}:${color2}%d%F{white}]%f"
+}
+
+build_prompt() {
+    RETVAL=$?
+    prompt_context
+    prompt_vcs
+    echo; echo -n "%# %{$reset_colors%}"
+}
+
+setopt promptsubst
+PROMPT='%{%f%b%k%}$(build_prompt)'
+
+HISTFILE=~/.zsh_history
+HISTSIZE=1024
+SAVEHIST=1024
+setopt append_history
+unsetopt share_history
+unsetopt inc_append_history
+# export MANPATH="/usr/local/man:$MANPATH"
+
+# # Preferred editor for local and remote sessions
+# if [[ -n $SSH_CONNECTION ]]; then
+#   export EDITOR='vim'
+# else
+#   export EDITOR='mvim'
+# fi
+
+# Compilation flags
+# export ARCHFLAGS="-arch x86_64"
+
+# ssh
+# export SSH_KEY_PATH="~/.ssh/dsa_id"
+#export TERM=xterm-256color
+[[ -f ${HOME}/.env ]] && source ${HOME}/.env
+[[ -f ${HOME}/.alias ]] && source ${HOME}/.alias
+[[ -f $HOME/.dircolors ]] && eval `dircolors $HOME/.dircolors`
+
+export KEYTIMEOUT=1

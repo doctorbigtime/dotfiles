@@ -1,0 +1,43 @@
+alias ..='cd ..'
+alias ...='cd ../..'
+alias ....='cd ../../..'
+
+alias bcl='bc -l'
+alias grep='grep --color=auto --exclude-dir={.git,.svn}'
+alias egrep='egrep --color=auto --exclude-dir={.git,.svn}'
+
+c() {
+    cd "$(find . -type d | fzf +m -q "$1" -0)"
+}
+
+fo() {
+    ${EDITOR:-vim} $(fzf -q "$1" -0)
+}
+
+fkill() {
+    local pid
+    pid=$(ps -ef | sed 1d | fzf -m | awk '{print $2}')
+
+    if [ "x$pid" != "x" ]; then
+        echo $pid | xargs kill -"${1:-9}"
+    fi
+}
+
+fr() {
+    egrep --color=auto -n "$@" | fzf --ansi
+}
+
+fgo() {
+    local result=$(fr "$@")
+    if [ "x$result" != "x" ]; then
+        ${EDITOR:-vim} $(awk -F: '{ printf "+%s %s", $2, $1 }' <<< $result)
+    fi
+}
+
+fp() {
+    echo -n "$(pacman --color always "${@:--Ss}" \
+        | sed 'N;s/\n//' \
+        | fzf -m --ansi \
+        | sed 's/ .*//')"
+}
+
