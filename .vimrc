@@ -52,19 +52,20 @@ Plug 'octol/vim-cpp-enhanced-highlight'
 Plug 'scrooloose/nerdtree'
 Plug 'vim-airline/vim-airline'
 Plug 'vim-airline/vim-airline-themes'
-Plug 'bling/vim-bufferline'
+Plug 'chrisbra/csv.vim'
 Plug 'kien/ctrlp.vim'
-if is_laptop == 0 
-    Plug 'vim-scripts/Conque-GDB'
-else
-    Plug 'altercation/vim-colors-solarized'
-endif
 if v:version >= 800
     Plug 'prabirshrestha/async.vim'
     Plug 'prabirshrestha/vim-lsp'
     Plug 'prabirshrestha/asyncomplete.vim'
     Plug 'prabirshrestha/asyncomplete-lsp.vim'
     Plug 'skywind3000/asyncrun.vim'
+endif
+if is_laptop
+    Plug 'altercation/vim-colors-solarized'
+elseif is_work
+    Plug 'juneedahamed/svnj.vim'
+    Plug 'vim-scripts/Conque-GDB'
 endif
 
 call plug#end()
@@ -78,8 +79,11 @@ let c_no_curly_error=1
 let $PAGER=''
 
 set tags=./tags,../tags,../../tags,$HOME/git/src/tags
-set path+=$HOME/git/src
+set path+=$HOME/git/src,.,../include
 
+if is_work
+    set path+=~/src/dev/include,~/src/marcrepo/greyhound
+endif
 " Searching
 function! DoRGrep(...)
     if a:0 == 0
@@ -206,17 +210,6 @@ nnoremap <F9> :Make<CR>
 nnoremap <F10> :Rebuild<CR>
 nnoremap <F8> :UnitTests<CR>
 
-if is_work
-    function! BuildM2()
-        if v:version >= 800
-            AsyncRun make -C ~/src/dev/M2_Debug
-        else
-            echo "No AsyncRun in this version"
-        endif
-    endfunction
-    command! -nargs=0 M2 call BuildM2()
-endif
-
 " Utilities
 function! DiffWithSaved()
     let filetype=&ft
@@ -242,11 +235,11 @@ vnoremap <c-w><c-]> <c-w>g<c-]>
 
 
 " ctrlp
-let g:ctrlp_user_command = "find %s -name .git -prune -o -name .svn -prune -o -name CMakeFiles -prune -o -name '_*' -prune -o -type f -not -name '*.cmake' -print"
+let g:ctrlp_user_command = 'find %s -name .git -prune -o -name .svn -prune -o -name CMakeFiles -prune -o -name 3p_libs\* -prune -o -name thirdparty -prune -o                \( -type f \) -a -not -path \*.so -not -path \*.a -not -path \*.cmake -print'
 
-" Airline
+" airline
 let g:airline_powerline_fonts=1
-let g:airline_extensions = ['bufferline']
+let g:airline_extensions = ['branch', 'bufferline']
 let g:airline#extensions#bufferline#enabled=1
 let g:airline#extensions#bufferline#overwrite_variables=1
 let g:airline#extensions#whitespace#enabled=0
