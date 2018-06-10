@@ -1,0 +1,28 @@
+#!/bin/zsh
+for n in $(seq 0 15)
+do
+    name="color$n"
+    eval "$name=$(xrdb -q | awk "/$name:/ { print \$NF }")"
+done
+typeset -A colors
+colors=(
+black "$color0"
+brblack "$color8"
+red "$color1"
+brred "$color9"
+green "$color2"
+brgreen "$color10"
+yellow "$color3"
+bryellow "$color11"
+blue "$color4"
+brblue "$color12"
+magenta "$color5"
+brmagenta "$color13"
+cyan "$color6"
+brcyan "$color14"
+white "$color7"
+brwhite "$color15"
+background "$(xrdb -q | awk '/background:/ { print $NF }')"
+foreground "$(xrdb -q | awk '/foreground:/ { print $NF }')"
+)
+export colors

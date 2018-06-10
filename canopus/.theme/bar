@@ -1,0 +1,19 @@
+#!/bin/zsh
+source $(realpath $(dirname $0))/colors
+
+typeset -A scheme
+scheme=(
+brwhite white
+white brblack
+brblack black
+black brwhite
+)
+
+typeset -A foreground
+foreground=(
+brwhite black
+white black
+brblack black
+black white
+)
+
