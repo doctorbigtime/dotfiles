@@ -241,9 +241,9 @@ vnoremap <c-w><c-]> <c-w>g<c-]>
 
 " fzf
 let g:fzf_laylout = { 'down': '~30%' }
-"let g:airline_theme='luna'
-"let g:airline_theme='dark'
-let g:airline_theme='distinguished'
+nnoremap <C-P> :FZF<CR>
+
+" airline
 let g:airline_powerline_fonts=1
 let g:airline_extensions = ['branch', 'bufferline']
 let g:airline#extensions#bufferline#enabled=1
@@ -301,69 +301,3 @@ else
     colorscheme molokai
 endif
 
-" Work related.
-if is_work
-    set path+=$HOME/src/dev/include,$HOME/src/marcrepo/greyhound
-endif
-
-" ConqueTerm
-let g:ConqueTerm_Color = 2         " 1: strip color after 200 lines, 2: always with color
-let g:ConqueTerm_CloseOnEnd = 1    " close conque when program ends running
-
-" This thing diffs the working version of a file
-" with the latest svn commited version.
-function! DiffWithSVN()
-    let filetype=&ft
-    diffthis
-    vnew | r! svn cat #
-    normal! 1Gdd
-    diffthis
-    execute "setlocal bt=nofile bh=wipe nobl noswf ro ft=" . filetype
-endfunction
-command! DiffSVN call DiffWithSVN()
-
-" Builds platform for m2
-function! BuildM2()
-    if v:version >= 800
-        AsyncRun make -j10 -C ~/src/dev/M2_Debug
-        copen
-    else
-        echo "No AsyncRun in this version"
-    endif
-endfunction
-function! RebuildM2()
-    VimuxRunCommand("~/src/dev/scripts/build/build_m2_debug.sh")
-endfunction
-
-" Builds greyhound
-function! BuildGreyhound()
-    if(!empty(glob('~/src/marcrepo/greyhound/Debug')))
-        VimuxRunCommand("make -C ~/src/marcrepo/greyhound/Debug -j10")
-    else
-        VimuxRunCommand("~/src/marcrepo/greyhound/build")
-    endif
-endfunction
-function! RebuildGreyhound()
-    VimuxRunCommand("~/src/marcrepo/greyhound/build")
-endfunction
-function! GreyhoundUnitTests()
-    if(empty(glob('~/src/marcrepo/greyhound/Debug/bin/greyhound_unittest')))
-        call BuildGreyhound()
-    endif
-    let l:gtest_arg = ""
-    if(match(expand('%:t:r'), 'test_') >= 0)
-        call inputsave()
-        let l:filt = input('Enter filter: ', expand('%:t:r'))
-        call inputrestore()
-        if(!empty(l:filt))
-            let l:gtest_arg=" --gtest_filter=" . l:filt . "\\*"
-        endif
-    endif
-    let l:cmd = "~/src/marcrepo/greyhound/Debug/bin/greyhound_unittest" . l:gtest_arg
-    VimuxRunCommand(l:cmd)
-endfunction
-command! -nargs=0 M2 call BuildM2()
-command! -nargs=0 Rebuild call RebuildM2()
-command! -nargs=0 BG call BuildGreyhound()
-command! -nargs=0 RG call RebuildGreyhound()
-command! -nargs=0 UT call GreyhoundUnitTests()
