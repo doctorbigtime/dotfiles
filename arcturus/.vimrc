@@ -7,7 +7,10 @@ set sw=4
 set ai
 set nu
 set hlsearch
+set ignorecase
+set smartcase
 set expandtab
+set noswapfile
 
 " automatically install pathogen / plug
 if empty(glob('~/.vim/autoload/pathogen.vim'))
@@ -21,14 +24,19 @@ if empty(glob('~/.vim/autoload/plug.vim'))
     autocmd VimEnter * PlugInstall --sync | source $MYVIMRC
 endif
 
+" Returns output of system() call chomped.
 function! ChompedSystem(...)
     return substitute(call('system', a:000), '\n\+$', '', '')
 endfunction
 
+" Some variables to change global behavior
 let is_laptop=0
+let is_work=0
 let hostname=ChompedSystem('hostname')
 if hostname == 'canopus'
     let is_laptop=1
+elseif match(hostname, 'boerboel')
+    let is_work=1
 endif
 
 " Plugin management
@@ -43,14 +51,11 @@ Plug 'tpope/vim-commentary'
 Plug 'vim-scripts/Align'
 Plug 'benmills/vimux'
 Plug 'octol/vim-cpp-enhanced-highlight'
-Plug 'scrooloose/nerdtree'
 Plug 'vim-airline/vim-airline'
 Plug 'vim-airline/vim-airline-themes'
+Plug 'chrisbra/csv.vim'
 Plug 'bling/vim-bufferline'
-Plug 'kien/ctrlp.vim'
-if is_laptop == 0 
-    Plug 'vim-scripts/Conque-GDB'
-else
+if is_laptop 
     Plug 'altercation/vim-colors-solarized'
 endif
 if v:version >= 800
@@ -60,90 +65,187 @@ if v:version >= 800
     Plug 'prabirshrestha/asyncomplete-lsp.vim'
     Plug 'skywind3000/asyncrun.vim'
 endif
+if is_laptop
+    Plug 'altercation/vim-colors-solarized'
+elseif is_work
+    Plug 'juneedahamed/svnj.vim'
+    Plug 'vim-scripts/Conque-GDB'
+endif
 
 call plug#end()
 
+" Do i need this?
 runtime! ftplugin/man.vim
 
+" Language specific settings
 let python_highlight_all=1
 let c_no_curly_error=1
 let $PAGER=''
 
-set tags=./tags,/home/sfortas/git/src/tags
-set path+=/home/sfortas/git/src
+set tags=./tags,../tags,../../tags,$HOME/git/src/tags
+set path+=.,../include,$HOME/git/src
 
-" Key mappings.
-nnoremap <c-]> g<c-]>
-vnoremap <c-]> g<c-]>
-nnoremap <c-w><c-]> <c-w>g<c-]>
-vnoremap <c-w><c-]> <c-w>g<c-]>
-nnoremap <F2> :Grep<CR>
-nnoremap <F3> :Regrep<CR>
-inoremap <C-Space> <C-x><C-o>
-inoremap <C-@> <C-x><C-o>
-
-" Utility functions
-function! BuildCPP()
-    if v:version >= 800
-        if(!empty(glob(expand('%:p:h') . '/Makefile')))
-            AsyncRun make -j10
-        elseif(!empty(glob(expand('%:p:h') . '/build/Makefile')))
-            AsyncRun make -C build -j10
-        else
-            AsyncRun g++ -g -Wall -pthread -std=c++1y % -o %:r  -lboost_system
-        endif
-        copen
+" Searching
+function! DoRGrep(...)
+    if a:0 == 0
+       call inputsave()
+       let query=input('Query: ')
+       call inputrestore()
     else
-        let l:old_makeprg=&makeprg
-        set makeprg=g++\ -g\ -Wall\ -pthread\ -std=c++1y\ %\ -o\ %:r
-        make | cwindow
-        set makeprg=l:old_makeprg
+        let query=a:1
     endif
-endfunction
-command! -nargs=0 Make call BuildCPP()
-nnoremap <F9> :Make<CR>
-
-function! Rebuild()
-    if v:version >= 800
-        if(empty(glob(expand('%:p:h') . '/CMakeLists.txt')))
-            echo "No CMakeLists.txt in directory."
-            return
-        endif
-        AsyncRun mkdir -p build; cd build; cmake -DCMAKE_EXPORT_COMPILE_COMMAND=ON -DCMAKE_BUILD_TYPE=Debug ..; make -j10
-        copen
-    endif
-endfunction
-function! Build()
-    AsyncRun make -C build
+    let grep_cmd='egrep --exclude-dir={.git,.svn,.cquery,CMakeFiles} -I -r -n '
+    call asyncrun#run('<bang>', '', grep_cmd . '"' . query . '"')
     copen
 endfunction
-command! -nargs=0 Mk call Build()
+command! -nargs=? Grep call DoRGrep(<args>)
+nnoremap <F3> :Grep expand('<cword>') <CR>
 
-function! BuildM2()
-    if v:version >= 800
-        AsyncRun make -C ~/src/dev/M2_Debug
+" Build related stuff
+let g:build_cores=15
+if is_laptop
+    let g:build_cores=4
+endif
+
+let g:gcc_basic_libraries='-lboost_system -lgtest_main'
+let g:gcc_basic_includes=''
+let g:gcc_basic_cmd='g++ -g -Wall -pthread -std=c++1y'
+
+function! BuildMake(where)
+    let make_cmd='make -C ' . a:where . ' -j' . g:build_cores
+    call asyncrun#run('<bang>', '', make_cmd)
+    copen
+endfunction
+
+" tries to build using CMake (which sucks).
+" 1. create a 'build' directory, and run cmake from it
+" 2. run make from build directory.
+function! BuildCMake(...)
+    let where = get(a:, 1, '.')
+    let build = get(a:, 2, 'build')
+    let opts = get(a:, 3, '')
+    let mkdir_cmd = 'mkdir -p ' . build . '; cd ' . build . ';'
+    let cmake_cmd = 'cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=ON '
+                \ . '-DCMAKE_BUILD_TYPE=Debug '
+                \ . opts . '.. ;'
+    let make_cmd= 'make -j' . g:build_cores
+    call asyncrun#run('<bang>', '', mkdir_cmd . cmake_cmd . make_cmd)
+    copen
+endfunction
+
+" tries to compile using some standard methods:
+" 1. is there is a Makefile in this directory, use it
+" 2. if there is a Makefile in ./build/ use that
+" 3. if there is a CMakeLists.txt in '.', use that
+" 4. otherwise run gcc with basic options on the current file
+function! BuildCPP()
+    if(filereadable(expand('%:p:h') . '/Makefile'))
+        call BuildMake('.')
+    elseif(filereadable(expand('%:p:h') . '/build/Makefile'))
+        call BuildMake('build')
+    elseif(filereadable(expand('%:p:h') . '/CMakeLists.txt'))
+        call BuildCMake('.')
     else
-        echo "No AsyncRun in this version"
+        " Basic single file build.
+        let build_cmd=g:gcc_basic_cmd . ' ' . g:gcc_basic_includes . ' '
+                    \ . expand('%') . ' -o ' . expand('%:r') . ' '
+                    \ . g:gcc_basic_libraries
+        call asyncrun#run('<bang>', '', build_cmd)
+        copen
     endif
 endfunction
-command! -nargs=0 M2 call BuildM2()
 
-" bufferline
-"let g:bufferline_active_buffer_left = '>>'
-"let g:bufferline_active_buffer_right = '<<'
-"let g:bufferline_echo = 1
-"let g:bufferline_inactive_highlight = 'StatusLine'
-"let g:bufferline_active_highlight = 'StatusLine'
-"let g:bufferline_echo = 0
-"autocmd VimEnter *
-"    \ let &statusline='%{bufferline#refresh_status()}'
-"        \ .bufferline#get_status_string()
+" tries to rebuild from scratch using standard methods.
+" 1. is there is a Makefile here, make clean with it, then run make.
+" 2. is there is a build directory with CMakeCache.txt, delete that directory
+"    and re-run cmake/make
+function! RebuildCPP()
+    let dir=expand('%:p:h')
+    if(filereadable(dir . '/Makefile'))
+        execute "!make clean"
+        call BuildCPP()
+    elseif (filereadable(dir . '/CMakeLists.txt'))
+        " Check if there's a build folder with a cmake cache
+        if(filewriteable(dir . '/build/CMakeCache.txt'))
+            execute "!rm -r build"
+            call BuildCPP()
+        endif
+    else
+        call BuildCPP()
+    endif
+endfunction
 
+" tries to find and execute (gtest) unit tests in current directory
+function! RunUnitTests()
+    let tests=split(system('find ' . expand('%:p:h') . ' -name \*_tests -perm /111'), "\n")
+    let cmd=''
+    for binary in tests
+        call inputsave()
+        let filt = input('Filter for ' . binary . ': ')
+        call inputrestore()
+        let cmd = cmd . binary . ' --gtest_shuffle'
+        if filt != ''
+            let cmd = cmd . ' --gtest_filter=' . filt
+        endif
+        let cmd = cmd . ';'
+        "if first
+        "    let first=0
+        "    execute "vert term ++close"
+        "endif
+    endfor
+    if cmd == ''
+        echo "No tests found."
+    else
+        call VimuxRunCommand(cmd)
+    endif
+endfunction
+
+command! -nargs=0 Make call BuildCPP()
+command! -nargs=0 Rebuild call RebuildCPP()
+command! -nargs=0 UnitTests call RunUnitTests()
+nnoremap <F9> :Make<CR>
+nnoremap <F10> :Rebuild<CR>
+nnoremap <F8> :UnitTests<CR>
+
+" Utilities
+function! DiffWithSaved()
+    let filetype=&ft
+    diffthis
+    vnew | r # | normal! 1Gdd
+    diffthis
+    execute "setlocal bt=nofile bh=wipe nobl noswf ro ft=" . filetype
+endfunction
+command! DiffSaved call DiffWithSaved()
+
+" Some mappings/time savers
+inoreabbrev email sebastien@fortas.org
+inoreabbrev pybang #!/usr/bin/env python
+inoreabbrev bang #!/usr/bin/env bash
+inoreabbrev teh the
+
+" global find/replace
+nnoremap <F4> :%s///g<LEFT><LEFT><LEFT>
+
+" reload .vimrc
+nnoremap <Leader>sv :execute 'source ~/.vimrc'<CR>
+
+" better tag jumping
+nnoremap <c-]> g<c-]>
+vnoremap <c-]> g<c-]>
+" better new window tag jumping. 
+nnoremap <c-w><c-]> <c-w>g<c-]>
+vnoremap <c-w><c-]> <c-w>g<c-]>
+
+"ctrlp - FIXME nuked in favor of fzf
+"let g:ctrlp_user_command = 'find %s -name .git -prune -o -name .svn -prune -o -name CMakeFiles -prune -o -name 3p_libs\* -prune -o -name thirdparty -prune -o -name .cquery -prune -o \( -type f \) -a -not -path \*.so -not -path \*.a -not -path \*.cmake -print'
+
+" fzf
+let g:fzf_laylout = { 'down': '~30%' }
 "let g:airline_theme='luna'
 "let g:airline_theme='dark'
 let g:airline_theme='distinguished'
 let g:airline_powerline_fonts=1
-let g:airline_extensions = ['bufferline']
+let g:airline_extensions = ['branch', 'bufferline']
 let g:airline#extensions#bufferline#enabled=1
 let g:airline#extensions#bufferline#overwrite_variables=1
 let g:airline#extensions#whitespace#enabled=0
@@ -154,10 +256,16 @@ function! AirlineInit()
 endfunction
 autocmd User AirlineAfterInit call AirlineInit()
 
-" NERDTree
-map <C-n> :NERDTreeToggle<CR>
+" Vimux
+let g:VimuxOrientation = "v"
+let g:VimuxHeight = "20"
+if is_laptop
+    let g:VimuxOrientation = "h"
+    let g:VimuxHeight = "40"
+endif
 
 " lsp/cquery
+" set these to debug cquery
 " let g:lsp_log_verbose = 1
 " let g:lsp_log_file = expand('~/vim-lsp.log')
 
@@ -167,7 +275,7 @@ if v:version >= 800 && executable('cquery')
         \ 'cmd': {server_info->['cquery']},
         \ 'root': {server_info->lsp#utils#path_to_uri(lsp#utils#find_nearest_parent_file_directory(lsp#utils#get_buffer_path(), 'compile_commands.json'))},
         \ 'initialization_options': {
-        \   'cacheDirectory': '~/.cquery/',
+        \   'cacheDirectory': '$HOME/.cquery/',
         \   'index': {
         \       'whitelist': ['boost/asio'],
         \       'blacklist': ['usr'],
@@ -179,21 +287,83 @@ if v:version >= 800 && executable('cquery')
     noremap <silent> gd :LspDefinition<CR>
     noremap <silent> <F2> :LspRename<CR>
     noremap <silent> gr :LspReferences<CR>
-
-            " \ 'index': {
-            "     \ 'blacklist': [ 'usr', 'boost' ],
-            "     \ 'whitelist': [ 'boost/asio' ],
-            "     \ 'logSkippedPaths': 1,
-            " \ }
-
-noremap <silent> gd :LspDefinition<CR>
-noremap <silent> <F2> :LspRename<CR>
-noremap <silent> gr :LspReferences<CR>
 endif
 
+" Colors!
 if is_laptop
     set background=dark
+    let g:airline_theme='solarized'
     colorscheme solarized
 else
+    "let g:airline_theme='luna'
+    "let g:airline_theme='dark'
+    let g:airline_theme='distinguished'
     colorscheme molokai
 endif
+
+" Work related.
+if is_work
+    set path+=$HOME/src/dev/include,$HOME/src/marcrepo/greyhound
+endif
+
+" ConqueTerm
+let g:ConqueTerm_Color = 2         " 1: strip color after 200 lines, 2: always with color
+let g:ConqueTerm_CloseOnEnd = 1    " close conque when program ends running
+
+" This thing diffs the working version of a file
+" with the latest svn commited version.
+function! DiffWithSVN()
+    let filetype=&ft
+    diffthis
+    vnew | r! svn cat #
+    normal! 1Gdd
+    diffthis
+    execute "setlocal bt=nofile bh=wipe nobl noswf ro ft=" . filetype
+endfunction
+command! DiffSVN call DiffWithSVN()
+
+" Builds platform for m2
+function! BuildM2()
+    if v:version >= 800
+        AsyncRun make -j10 -C ~/src/dev/M2_Debug
+        copen
+    else
+        echo "No AsyncRun in this version"
+    endif
+endfunction
+function! RebuildM2()
+    VimuxRunCommand("~/src/dev/scripts/build/build_m2_debug.sh")
+endfunction
+
+" Builds greyhound
+function! BuildGreyhound()
+    if(!empty(glob('~/src/marcrepo/greyhound/Debug')))
+        VimuxRunCommand("make -C ~/src/marcrepo/greyhound/Debug -j10")
+    else
+        VimuxRunCommand("~/src/marcrepo/greyhound/build")
+    endif
+endfunction
+function! RebuildGreyhound()
+    VimuxRunCommand("~/src/marcrepo/greyhound/build")
+endfunction
+function! GreyhoundUnitTests()
+    if(empty(glob('~/src/marcrepo/greyhound/Debug/bin/greyhound_unittest')))
+        call BuildGreyhound()
+    endif
+    let l:gtest_arg = ""
+    if(match(expand('%:t:r'), 'test_') >= 0)
+        call inputsave()
+        let l:filt = input('Enter filter: ', expand('%:t:r'))
+        call inputrestore()
+        if(!empty(l:filt))
+            let l:gtest_arg=" --gtest_filter=" . l:filt . "\\*"
+        endif
+    endif
+    let l:cmd = "~/src/marcrepo/greyhound/Debug/bin/greyhound_unittest" . l:gtest_arg
+    VimuxRunCommand(l:cmd)
+endfunction
+command! -nargs=0 M2 call BuildM2()
+command! -nargs=0 Rebuild call RebuildM2()
+command! -nargs=0 BG call BuildGreyhound()
+command! -nargs=0 RG call RebuildGreyhound()
+command! -nargs=0 UT call GreyhoundUnitTests()

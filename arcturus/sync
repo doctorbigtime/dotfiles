@@ -1,5 +1,5 @@
 #!/bin/bash
-dst="$HOME/tmp"
+dst="$HOME/git/dotfiles/$(hostname)"
 
 files=(
 .zshrc
