@@ -1,0 +1,8 @@
+alias prod='ssh aurpm2s03 -l m2prod'
+alias uat='ssh aurpm2s03 -l m2test'
+alias svns='svn status'
+alias m='make -j15 -C /home/sfortas/src/marcrepo/greyhound/Debug'
+alias m2='make -j15 -C /home/sfortas/src/dev/M2_Debug'
+alias u='/home/sfortas/src/marcrepo/greyhound/Debug/bin/greyhound_unittest'
+alias gu='gdb --args /home/sfortas/src/marcrepo/greyhound/Debug/bin/greyhound_unittest'
+export LBM_LICENSE_INFO='Product=LBM:Organization=Ronin Capital LLC:Expiration-Date=never:License-Key=8CB2 B9CE 2CFC 63BC'

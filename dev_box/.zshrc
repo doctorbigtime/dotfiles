@@ -1,0 +1,30 @@
+# .zshrc
+DEFAULT_USER=sfortas
+
+# source all config files.
+if [ -d $HOME/.zsh ]; then
+    for f in $(ls $HOME/.zsh/*.zsh 2> /dev/null)
+    do
+        source $f
+    done
+fi
+[ -f $HOME/.dircolors ] && eval `dircolors $HOME/.dircolors`
+[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
+[ -f /home/sfortas/git/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh ] && \
+    source /home/sfortas/git/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh 
+
+# misc stuff.
+
+# enable directory stack
+setopt autopushd
+setopt autocd
+
+# history
+HISTFILE=~/.zsh_history
+HISTSIZE=1024
+SAVEHIST=1024
+setopt append_history
+unsetopt share_history
+unsetopt inc_append_history
+
+set -o vi

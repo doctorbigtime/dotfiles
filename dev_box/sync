@@ -1,0 +1,53 @@
+#!/bin/bash
+dst="$HOME/git/dotfiles/dev_box"
+
+files=(
+.zshrc
+.bashrc
+.zprofile
+.profile
+.vimrc
+.xinitrc
+.alacritty.yml
+.zsh
+.xrdb
+.Xresources
+.gdbinit
+.tmux.conf
+.vim/colors/molokai.vim
+.config/i3
+.config/bspwm
+.config/polybar
+.config/sxhkd
+.config/compton.conf
+)
+
+usage() {
+    echo "USAGE:"
+    echo "$0 [remote|local]"
+}
+
+declare -a to_sync
+
+direction=${1:-remote}
+case "$direction" in
+    remote)
+        cd $HOME
+        for f in ${files[@]}
+        do
+            [[ -f "$f" || -d "$f" ]] && to_sync+=($f)
+        done
+        echo "Will sync: ${to_sync[@]}"
+        rsync -Rr ${to_sync[@]} ${dst}
+    ;;
+    local)
+        for f in ${files[@]}
+        do
+            echo "copying git/dotfiles/$f to $HOME"
+        done
+    ;;
+    *)
+        usage
+    ;;
+esac
+
