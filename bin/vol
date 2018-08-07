@@ -1,8 +1,28 @@
 #!/bin/bash
 
-if [[ $# -gt 0 ]]; then
-    pactl set-sink-volume 0 $1\%
+pa_volume() 
+{
+    if [[ $# -gt 0 ]]; then
+        pactl set-sink-volume 0 $1\%
+    else
+        pactl list sinks | grep '^[[:space:]]Volume:' | sed -e 's,.* \([0-9][0-9]*%\).*,\1,'
+    fi
+}
+
+alsa_volume()
+{
+    if [[ -n "$@" ]]; then
+        amixer -c1 set Master "$@" | grep 'Mono: Playback' | sed -rune 's/.*\[([0-9]+)%\].*/\1/p'
+    else
+        amixer -c1 get Master | grep 'Mono: Playback' | sed -rune 's/.*\[([0-9]+)%\].*/\1/p'
+    fi
+}
+
+if pactl list > /dev/null 2>&1; then
+    pa_volume $@
+elif aplay -l > /dev/null 2>&1; then
+    alsa_volume $@
 else
-    pactl list sinks | grep '^[[:space:]]Volume:' | sed -e 's,.* \([0-9][0-9]*%\).*,\1,'
+    echo "Could not find a sound system."
 fi
 

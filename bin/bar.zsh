@@ -7,7 +7,8 @@
 barh=17
 rrate=".2s"
 p="  "
-iconfont="FontAwesome:style=Regular"
+iconfont="Font Awesome 5 Free:style=Solid:size=10"
+#iconfont="Material Icons:size=12"
 #font="Liberation Mono for Powerline:style=Regular"
 font="Space Mono for Powerline:style=Bold:size=10"
 
@@ -17,6 +18,13 @@ SEGMENT_SEPARATOR=$'\ue0b0'
 #bg="%{B#b58900}"
 br="%{B-}"
 txt="%{F#fff}"
+
+box=$(hostname)
+
+[[ -x $(command -v iwgetid) ]] && use_iwgetid=1
+[[ -x $(command -v wpa_cli) ]] && use_wpa_cli=1
+[[ -x $(command -v pactl) ]] && use_pactl=1
+[[ -x $(command -v amixer) ]] && use_amixer=1
 
 segment() {
     local bg fg bgrgb fgrgb
@@ -64,16 +72,24 @@ desktop() {
 }
 
 network() {
-    id=$(iwgetid -r)
+    if [[ -n "$use_iwgetid" ]]; then
+        id=$(iwgetid -r)
+    elif [[ -n "$use_wpa_cli" ]]; then
+        id=$(wpa_cli status | grep '^ssid' | awk -F= '{ print $2 }')
+    else 
+        return
+    fi
     segment
     if [[ "${id}" == "" ]]; then
         echo -n "No network"
     else
         echo -ne "\uf1eb ${id}"
+        #echo -ne "\ue63e ${id}"
     fi
 }
 
 cpu() {
+    [[ -f /tmp/last_cpu.txt ]] || return
     percent=$(cat /tmp/last_cpu.txt)
     segment
     #echo -ne "\uf2db ${percent}"
@@ -81,31 +97,39 @@ cpu() {
 }
 
 hwmon_watercooling() {
-    let cpu_temp=$(cat /sys/class/hwmon/hwmon0/temp2_input)/1000
-    let fan_rpm=$(cat /sys/class/hwmon/hwmon0/fan2_input)
-    let coolant_temp=$(visioncli -t2)
+    let cpu_temp=$(cat /sys/class/hwmon/hwmon2/temp2_input)/1000
+    #let fan_rpm=$(cat /sys/class/hwmon/hwmon1/fan2_input)
     segment
     echo -ne "\uf2c9 $cpu_temp°"
-    segment
-    echo -ne "|\uf043 $coolant_temp°"
-    segment
-    echo -ne "\uf110 $fan_rpm RPM"
+    #segment
+    #echo -ne "\uf110 $fan_rpm RPM"
+    if [[ -x $(command -v visioncli) ]]; then
+        coolant_temp=$(visioncli -t1)
+        segment
+        echo -ne "\uf043 $coolant_temp°"
+    fi
 }
 
 hwmon() {
-    if [[ "$(hostname)" = "canopus" ]]; then
+    if [[ "${box}" = "canopus" ]]; then
         cpu_temp=$(sensors asus-isa-0000 | grep temp1 | awk '{ print $2 }')
         fan_rpm=$(sensors asus-isa-0000 | grep RPM | awk '{ print $2 }')
         segment
         echo -ne "\uf2c9 $cpu_temp|\uf110 $fan_rpm RPM"
-    elif [[ "$(systemctl is-active pwmd)" = "active" ]]; then
+    elif [[ "${box}" = "betelgeuse" ]]; then
         hwmon_watercooling
-        return
     else
-        let cpu_temp=$(cat /sys/class/hwmon/hwmon3/temp1_input)/1000
-        rpm=$(cat /sys/class/hwmon/hwmon3/fan1_input)
-        segment
-        echo -ne "\uf2c9 $cpu_temp°|\uf110 $rpm RPM"
+        # Generic.
+        if [[ -x $(command -v sensors) ]]; then
+            cpu_temp=$(sensors | grep CPUTIN | awk '{ print $2 }')
+            segment
+            echo -ne "\uf2c9 $cpu_temp"
+        else
+            let cpu_temp=$(cat /sys/class/hwmon/hwmon3/temp1_input)/1000
+            rpm=$(cat /sys/class/hwmon/hwmon3/fan1_input)
+            segment
+            echo -ne "\uf2c9 $cpu_temp°|\uf110 $rpm RPM"
+        fi
     fi
 }
 
@@ -121,12 +145,25 @@ brightness() {
 }
 
 sound() {
-    sound_on=$(pactl list sinks short | awk '{ print $NF }')
-    volume=$(pactl list sinks | grep '^[[:space:]]Volume:' | sed -e 's,.* \([0-9][0-9]*\)%.*,\1,')
-    # pactl set-sink-volume alsa_output.pci-0000_00_1b.0.analog-stereo 30\%
+    if [[ -n "$use_pactl" ]]; then
+        # pactl set-sink-volume alsa_output.pci-0000_00_1b.0.analog-stereo 30\%
+        sink=$(pactl list sinks short | grep -v hdmi | grep RUNNING | tail -1 | cut -f2)
+        if [[ -n $sink ]]; then
+            sound_on="yes"
+            volume=$(pactl list sinks | grep "Name: $sink" -A7 | grep '^[[:space:]]Volume:' | sed -e 's,.* \([0-9][0-9]*\)%.*,\1,')
+        fi
+        #sound_on=$(pactl list sinks short | awk '{ print $NF }')
+    elif [[ -n "$use_amixer" ]]; then
+        line=$(amixer -c1 get Master | grep 'Mono: Playback')
+        sound_on="no"
+        [[ $(awk '{ print $NF }' <<< $line) = "[on]" ]] && sound_on="yes"
+        volume=$(sed -rune 's/.*\[([0-9]+)%\].*/\1/p' <<< $line)
+    else
+        return
+    fi
     segment
     ico="\uf026"
-    if [[ "$sound_on" == "RUNNING" ]]; then
+    if [[ "$sound_on" == "yes" ]]; then
         ico="\uf028"
     fi
     echo -ne "$ico $volume%"
@@ -170,9 +207,9 @@ power() {
 }
 
 vpn() {
-    if ip addr | grep -q sslvpn; then
+    if ip addr | grep -q vpn; then
         segment
-        echo -ne "\uf132 VPN"
+        echo -ne "\uf3ed VPN"
     fi
 }
 
