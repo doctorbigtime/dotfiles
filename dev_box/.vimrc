@@ -94,7 +94,7 @@ let g:source_roots=[$HOME . '/src/vplat', $HOME . '/src/marcrepo/greyhound']
 endif
 
 set tags=./tags,../tags,../../tags,$HOME/git/src/tags
-let path='.,../include,' . join(g:source_roots, ',') . ',/usr/include'
+let path='.,../include,./include' . join(g:source_roots, ',') . ',/usr/include'
 
 
 " Searching

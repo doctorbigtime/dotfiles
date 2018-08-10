@@ -16,7 +16,8 @@ fi
 # misc stuff.
 
 # enable directory stack
-setopt autopushd
+DIRSTACKSIZE=8
+setopt autopushd pushdminus pushdsilent pushdignoredups
 setopt autocd
 
 # history
