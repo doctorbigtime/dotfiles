@@ -1,0 +1,38 @@
+#!/bin/bash
+
+function blur() {
+    i3lock -i <(import -window root png:- | convert -blur 0x10 - png:- | convert - ${LOCK_ICON:-$HOME/pix/stop.png} -gravity center -composite png:-)
+}
+
+function pixelate() {
+    i3lock -i <(import -window root jpg:- | convert -scale 10% -scale 1000% - jpg:- | convert - ${LOCK_ICON:-$HOME/pix/locked.png} -gravity center -composite png:-)
+}
+
+function mosh() {
+    fs=$(wc -c < $1)
+    h=1000
+    skip=$(shuf -i "$h"-"$fs" -n 1)
+    count=$(shuf -i 1-10 -n 1)
+    for i in $(seq 1 $count)
+    do
+    byteStr=$byteStr'\x'$(shuf -i 0-255 -n 1)
+    done
+    echo "modifying $count bytes at offset $skip"
+    printf $byteStr | dd of=$1 bs=1 seek=$skip count=$count conv=notrunc > /dev/null 2>&1
+}
+
+function glitch() {
+    import -window root /tmp/lock.jpg
+    for i in $(seq 1 $(shuf -i 40-70 -n 1))
+    do
+        mosh /tmp/lock.jpg
+    done
+    i3lock -i <(convert /tmp/lock.jpg ${LOCK_ICON:-$HOME/pix/stop.png} -gravity center -composite png:-)
+}
+
+funs=(blur pixelate glitch)
+if [[ $# -gt 0 && " ${funs[@]} " =~ " $1 " ]]; then
+    eval $1
+else
+    eval ${funs[$RANDOM % ${#funs[@]}]}
+fi
