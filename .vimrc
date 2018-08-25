@@ -7,6 +7,8 @@ set sw=4
 set ai
 set nu
 set hlsearch
+set ignorecase
+set smartcase
 set expandtab
 set noswapfile
 
@@ -49,7 +51,6 @@ Plug 'tpope/vim-commentary'
 Plug 'vim-scripts/Align'
 Plug 'benmills/vimux'
 Plug 'octol/vim-cpp-enhanced-highlight'
-Plug 'scrooloose/nerdtree'
 Plug 'vim-airline/vim-airline'
 Plug 'vim-airline/vim-airline-themes'
 Plug 'chrisbra/csv.vim'
@@ -123,14 +124,10 @@ function! BuildCMake(...)
     let where = get(a:, 1, '.')
     let build = get(a:, 2, 'build')
     let opts = get(a:, 3, '')
-    if defines == ''
-        call inputsave()
-        let opts = input('Additional command line options: ')
-        call inputrestore()
     let mkdir_cmd = 'mkdir -p ' . build . '; cd ' . build . ';'
     let cmake_cmd = 'cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=ON '
-        . '-DCMAKE_BUILD_TYPE=Debug ' \
-        . opts . '.. ;'
+                \ . '-DCMAKE_BUILD_TYPE=Debug '
+                \ . opts . '.. ;'
     let make_cmd= 'make -j' . g:build_cores
     call asyncrun#run('<bang>', '', mkdir_cmd . cmake_cmd . make_cmd)
     copen
@@ -142,17 +139,17 @@ endfunction
 " 3. if there is a CMakeLists.txt in '.', use that
 " 4. otherwise run gcc with basic options on the current file
 function! BuildCPP()
-    if(filereadable(expand('%:p:h') . '/Makefile')))
+    if(filereadable(expand('%:p:h') . '/Makefile'))
         call BuildMake('.')
-    elseif(filereadable(expand('%:p:h') . '/build/Makefile')))
+    elseif(filereadable(expand('%:p:h') . '/build/Makefile'))
         call BuildMake('build')
-    elseif(filereadable(expand('%:p:h') . '/CMakeLists.txt')))
+    elseif(filereadable(expand('%:p:h') . '/CMakeLists.txt'))
         call BuildCMake('.')
     else
         " Basic single file build.
-        let build_cmd=g:gcc_basic_cmd . ' ' . g:gcc_basic_includes . ' ' \
-            . expand('%') . ' -o ' . expand('%:r') . ' ' \
-            . g:gcc_basic_libs
+        let build_cmd=g:gcc_basic_cmd . ' ' . g:gcc_basic_includes . ' '
+                    \ . expand('%') . ' -o ' . expand('%:r') . ' '
+                    \ . g:gcc_basic_libraries
         call asyncrun#run('<bang>', '', build_cmd)
         copen
     endif
@@ -234,8 +231,9 @@ nnoremap <c-w><c-]> <c-w>g<c-]>
 vnoremap <c-w><c-]> <c-w>g<c-]>
 
 
-" ctrlp
-let g:ctrlp_user_command = 'find %s -name .git -prune -o -name .svn -prune -o -name CMakeFiles -prune -o -name 3p_libs\* -prune -o -name thirdparty -prune -o                \( -type f \) -a -not -path \*.so -not -path \*.a -not -path \*.cmake -print'
+" fzf
+let g:fzf_laylout = { 'down': '~30%' }
+nnoremap <C-L> :FZF<CR>
 
 " airline
 let g:airline_powerline_fonts=1
@@ -251,15 +249,12 @@ endfunction
 autocmd User AirlineAfterInit call AirlineInit()
 
 " Vimux
-let g:VimuxOrientation = "h"
+let g:VimuxOrientation = "v"
 let g:VimuxHeight = "20"
 if is_laptop
-    let g:VimuxOrientation = "v"
+    let g:VimuxOrientation = "h"
     let g:VimuxHeight = "40"
 endif
-
-" NERDTree
-map <C-n> :NERDTreeToggle<CR>
 
 " lsp/cquery
 " set these to debug cquery
@@ -272,7 +267,7 @@ if v:version >= 800 && executable('xcquery')
         \ 'cmd': {server_info->['cquery']},
         \ 'root': {server_info->lsp#utils#path_to_uri(lsp#utils#find_nearest_parent_file_directory(lsp#utils#get_buffer_path(), 'compile_commands.json'))},
         \ 'initialization_options': {
-        \   'cacheDirectory': '~/.cquery/',
+        \   'cacheDirectory': $HOME . '/.cquery/',
         \   'index': {
         \       'whitelist': ['boost/asio'],
         \       'blacklist': ['usr'],
@@ -289,8 +284,8 @@ endif
 " Colors!
 if is_laptop
     set background=dark
-    let g:airline_theme='solarized'
-    colorscheme solarized
+    let g:airline_theme='gruvbox'
+    colorscheme gruvbox
 else
     "let g:airline_theme='luna'
     "let g:airline_theme='dark'
