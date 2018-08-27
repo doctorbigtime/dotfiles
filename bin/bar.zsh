@@ -23,8 +23,11 @@ box=$(hostname)
 
 [[ -x $(command -v iwgetid) ]] && use_iwgetid=1
 [[ -x $(command -v wpa_cli) ]] && use_wpa_cli=1
-[[ -x $(command -v pactl) ]] && use_pactl=1
-[[ -x $(command -v amixer) ]] && use_amixer=1
+if [[ -x $(command -v pactl) ]]; then
+    use_pactl=1
+else 
+    [[ -x $(command -v amixer) ]] && use_amixer=1
+fi
 
 segment() {
     local bg fg bgrgb fgrgb
@@ -113,10 +116,10 @@ hwmon_watercooling() {
 hwmon() {
     if [[ "${box}" = "canopus" ]]; then
         cpu_temp=$(sensors asus-isa-0000 | grep temp1 | awk '{ print $2 }')
-        fan_rpm=$(sensors asus-isa-0000 | grep RPM | awk '{ print $2 }')
+        #fan_rpm=$(sensors asus-isa-0000 | grep RPM | awk '{ print $2 }')
         segment
-        echo -ne "\uf2c9 $cpu_temp|\uf110 $fan_rpm RPM"
-    elif [[ "${box}" = "betelgeuse" ]]; then
+        echo -ne "\uf2c9 $cpu_temp"
+    elif [[ "$(systemctl is-active pwmd)" = "active" ]]; then
         hwmon_watercooling
     else
         # Generic.
@@ -144,29 +147,38 @@ brightness() {
     echo -ne "\uf26c $percent%"
 }
 
+sound_pulseaudio() {
+    sink=$(pacmd stat | grep "Default sink name:" | awk -F ": " '{ print $2 }')
+    state=$(pactl list sinks short | grep "$sink" | awk '{ print $NF }')
+    segment
+    if [[ $state == "RUNNING" ]]; then
+        ico="\uf028"
+        if [[ "$sink" =~ bluez.* ]]; then
+            ico="\uf293 $ico"
+        fi
+        volume=$(pactl list sinks | grep "Name: $sink" -A7 | grep '^[[:space:]]Volume:' | sed -e 's,.* \([0-9][0-9]*\)%.*,\1,')
+        echo -ne "$ico $volume%"
+    else
+        ico="\uf026"
+        echo -ne "$ico"
+    fi
+}
+
 sound() {
     if [[ -n "$use_pactl" ]]; then
-        # pactl set-sink-volume alsa_output.pci-0000_00_1b.0.analog-stereo 30\%
-        sink=$(pactl list sinks short | grep -v hdmi | grep RUNNING | tail -1 | cut -f2)
-        if [[ -n $sink ]]; then
-            sound_on="yes"
-            volume=$(pactl list sinks | grep "Name: $sink" -A7 | grep '^[[:space:]]Volume:' | sed -e 's,.* \([0-9][0-9]*\)%.*,\1,')
-        fi
-        #sound_on=$(pactl list sinks short | awk '{ print $NF }')
+        sound_pulseaudio
     elif [[ -n "$use_amixer" ]]; then
         line=$(amixer -c1 get Master | grep 'Mono: Playback')
         sound_on="no"
         [[ $(awk '{ print $NF }' <<< $line) = "[on]" ]] && sound_on="yes"
         volume=$(sed -rune 's/.*\[([0-9]+)%\].*/\1/p' <<< $line)
-    else
-        return
+        segment
+        ico="\uf026"
+        if [[ "$sound_on" == "yes" ]]; then
+            ico="\uf028"
+        fi
+        echo -ne "$ico $volume%"
     fi
-    segment
-    ico="\uf026"
-    if [[ "$sound_on" == "yes" ]]; then
-        ico="\uf028"
-    fi
-    echo -ne "$ico $volume%"
 }
 
 battery() {
@@ -218,7 +230,7 @@ build_bar () {
     echo -en "%{l}"
     desktop
     network
-    cpu
+    #cpu
     hwmon
     battery
     brightness
@@ -239,8 +251,8 @@ loop() {
         -f "$iconfont" \
         -g "x$barh" | bash
 } 
-if [[ -x ${HOME}/bin/cpu_usage ]]; then
-    ${HOME}/bin/cpu_usage &
-fi
+#if [[ -x ${HOME}/bin/cpu_usage ]]; then
+#    ${HOME}/bin/cpu_usage &
+#fi
 loop
 
