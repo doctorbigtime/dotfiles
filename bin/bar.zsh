@@ -8,6 +8,7 @@ barh=17
 rrate=".2s"
 p="  "
 iconfont="Font Awesome 5 Free:style=Solid:size=10"
+iconfont2="Font Awesome 5 Brands:style=Solid:size=10"
 #iconfont="Material Icons:size=12"
 #font="Liberation Mono for Powerline:style=Regular"
 font="Space Mono for Powerline:style=Bold:size=10"
@@ -249,6 +250,7 @@ loop() {
     done | $HOME/bin/lemonbar \
         -f "$font" \
         -f "$iconfont" \
+        -f "$iconfont2" \
         -g "x$barh" | bash
 } 
 #if [[ -x ${HOME}/bin/cpu_usage ]]; then
