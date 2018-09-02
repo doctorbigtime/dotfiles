@@ -117,7 +117,6 @@ hwmon_watercooling() {
 hwmon() {
     if [[ "${box}" = "canopus" ]]; then
         cpu_temp=$(sensors asus-isa-0000 | grep temp1 | awk '{ print $2 }')
-        #fan_rpm=$(sensors asus-isa-0000 | grep RPM | awk '{ print $2 }')
         segment
         echo -ne "\uf2c9 $cpu_temp"
     elif [[ "$(systemctl is-active pwmd)" = "active" ]]; then

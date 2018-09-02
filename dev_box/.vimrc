@@ -72,8 +72,6 @@ Plug 'SirVer/ultisnips'
 call plug#end()
 
 " TESTING ULTISNIPS
-"let g:UltiSnipsExpandTrigger=<tab>
-"let g:UltiSnipsListSnippets=<c-tab>
 let g:UltiSnipsJumpForwardTrigger = '<tab>'
 let g:UltiSnipsJumpBackwardTrigger = '<s-tab>'
 
@@ -258,9 +256,8 @@ endfunction
 command! DiffSaved call DiffWithSaved()
 
 " Some mappings/time savers
-inoreabbrev email sebastien@fortas.org
 inoreabbrev pybang #!/usr/bin/env python
-"inoreabbrev bang #!/usr/bin/env bash
+inoreabbrev shebang #!/usr/bin/env bash
 inoreabbrev teh the
 
 " global find/replace
@@ -272,16 +269,13 @@ nnoremap <Leader>sv :execute 'source ~/.vimrc'<CR>
 " better tag jumping
 nnoremap <c-]> g<c-]>
 vnoremap <c-]> g<c-]>
-" better new window tag jumping. 
 nnoremap <c-w><c-]> <c-w>g<c-]>
 vnoremap <c-w><c-]> <c-w>g<c-]>
 
-"ctrlp - FIXME nuked in favor of fzf
-"let g:ctrlp_user_command = 'find %s -name .git -prune -o -name .svn -prune -o -name CMakeFiles -prune -o -name 3p_libs\* -prune -o -name thirdparty -prune -o -name .cquery -prune -o \( -type f \) -a -not -path \*.so -not -path \*.a -not -path \*.cmake -print'
 
 " fzf
-let g:fzf_laylout = { 'down': '~30%' }
-nnoremap <C-P> :FZF<CR>
+let g:fzf_layout = { 'down': '~30%' }
+nnoremap <c-p> :FZF<CR>
 
 " airline
 let g:airline_powerline_fonts=1
@@ -332,8 +326,10 @@ endif
 " Colors!
 if is_laptop
     set background=dark
-    let g:airline_theme='solarized'
-    colorscheme solarized
+    let g:airline_theme='gruvbox'
+    colorscheme gruvbox
+    "let g:airline_theme='solarized'
+    "colorscheme solarized
 else
     "let g:airline_theme='luna'
     "let g:airline_theme='dark'
