@@ -339,6 +339,7 @@ endif
 
 " Work related.
 if is_work
+    let g:source_roots=[$HOME . '/src/vplat', $HOME . '/src/marcrepo/greyhound']
     set path+=$HOME/src/dev/include,$HOME/src/marcrepo/greyhound
 endif
 
