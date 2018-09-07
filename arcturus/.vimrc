@@ -91,7 +91,7 @@ let $PAGER=''
 let g:source_roots=[$HOME . '/src/hawker']
 
 set tags=./tags,../tags,../../tags,$HOME/git/src/tags
-let path='.,../include,./include' . join(g:source_roots, ',') . ',/usr/include'
+let path='.,../include,./include,' . join(g:source_roots, ',') . ',/usr/include'
 
 
 " Searching
@@ -156,6 +156,7 @@ function! CompileAsm()
     execute "set ft=asm"
 endfunction
 
+" Builds current file with gcc using some sane defaults.
 function! BuildGcc()
     let build_cmd=g:gcc_basic_cmd . ' ' . g:gcc_basic_includes . ' '
                 \ . expand('%') . ' -o ' . expand('%:r') . ' '
