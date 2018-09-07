@@ -144,10 +144,33 @@ if is_laptop
     let g:build_cores=4
 endif
 
-"let g:gcc_basic_libraries='-lboost_system'
 let g:gcc_basic_libraries=''
 let g:gcc_basic_includes=''
-let g:gcc_basic_cmd='g++ -g -Wall -pthread -std=c++1y'
+let g:gcc_basic_cmd='g++ -g -Wall -pthread -std=c++17'
+let g:clang_basic_cmd='clang++ -g -Wall -pthread -std=c++17'
+
+function! CompileAsm()
+    let build_cmd=g:gcc_basic_cmd . ' -S ' . g:gcc_basic_includes . ' '
+                \ . expand('%') . ' -o - '
+    vnew | execute "r! " build_cmd | normal! 1Gdd
+    execute "set ft=asm"
+endfunction
+
+function! BuildGcc()
+    let build_cmd=g:gcc_basic_cmd . ' ' . g:gcc_basic_includes . ' '
+                \ . expand('%') . ' -o ' . expand('%:r') . ' '
+                \ . g:gcc_basic_libraries
+    call asyncrun#run('<bang>', '', build_cmd)
+    copen
+endfunction
+
+function! BuildClang()
+    let build_cmd=g:clang_basic_cmd . ' ' . g:gcc_basic_includes . ' '
+                \ . expand('%') . ' -o ' . expand('%:r') . ' '
+                \ . g:gcc_basic_libraries
+    call asyncrun#run('<bang>', '', build_cmd)
+    copen
+endfunction
 
 function! BuildMake(where)
     let make_cmd='make -C ' . a:where . ' -j' . g:build_cores
@@ -185,11 +208,7 @@ function! BuildCPP()
         call BuildCMake('.')
     else
         " Basic single file build.
-        let build_cmd=g:gcc_basic_cmd . ' ' . g:gcc_basic_includes . ' '
-                    \ . expand('%') . ' -o ' . expand('%:r') . ' '
-                    \ . g:gcc_basic_libraries
-        call asyncrun#run('<bang>', '', build_cmd)
-        copen
+        call BuildGcc()
     endif
 endfunction
 
@@ -241,9 +260,12 @@ endfunction
 command! -nargs=0 Make call BuildCPP()
 command! -nargs=0 Rebuild call RebuildCPP()
 command! -nargs=0 UnitTests call RunUnitTests()
+command! -nargs=0 Gcc call BuildGcc()
+command! -nargs=0 Clang call BuildClang()
+command! -nargs=0 Asm call CompileAsm()
+nnoremap <F8> :Gcc<CR>
 nnoremap <F9> :Make<CR>
 nnoremap <F10> :Rebuild<CR>
-nnoremap <F8> :UnitTests<CR>
 
 " Utilities
 function! DiffWithSaved()
@@ -269,6 +291,7 @@ nnoremap <Leader>sv :execute 'source ~/.vimrc'<CR>
 " better tag jumping
 nnoremap <c-]> g<c-]>
 vnoremap <c-]> g<c-]>
+" better new window tag jumping. 
 nnoremap <c-w><c-]> <c-w>g<c-]>
 vnoremap <c-w><c-]> <c-w>g<c-]>
 
