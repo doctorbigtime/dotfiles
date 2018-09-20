@@ -74,7 +74,7 @@ Plug 'SirVer/ultisnips'
 
 call plug#end()
 
-" TESTING ULTISNIPS
+" ULTISNIPS
 let g:UltiSnipsJumpForwardTrigger = '<tab>'
 let g:UltiSnipsJumpBackwardTrigger = '<s-tab>'
 
@@ -315,10 +315,10 @@ endfunction
 autocmd User AirlineAfterInit call AirlineInit()
 
 " Vimux
-let g:VimuxOrientation = "v"
+let g:VimuxOrientation = "h"
 let g:VimuxHeight = "20"
 if is_laptop
-    let g:VimuxOrientation = "h"
+    let g:VimuxOrientation = "v"
     let g:VimuxHeight = "40"
 endif
 
