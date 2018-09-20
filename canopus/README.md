@@ -1,1 +1,1 @@
-i3-gaps + solarized
+i3-gaps + gruvbox
