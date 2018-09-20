@@ -1,0 +1,5 @@
+#!/bin/bash
+echo "Id: Some bullshit"
+echo "Repo: More bullshit"
+echo "Revision: 666"
+echo "Last-Modified-By: sebastien"

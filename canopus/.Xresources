@@ -1,71 +1,16 @@
-! Base16 Solarized Dark
-! Author: Ethan Schoonover (http://ethanschoonover.com/solarized)
-!
-! base00: #002b36
-! base01: #073642
-! base02: #586e75
-! base03: #657b83
-! base04: #839496
-! base05: #93a1a1
-! base06: #eee8d5
-! base07: #fdf6e3
-! base08: #dc322f
-! base09: #cb4b16
-! base0A: #b58900
-! base0B: #859900
-! base0C: #2aa198
-! base0D: #268bd2
-! base0E: #6c71c4
-! base0F: #d33682
+#include ".xrdb/color/gruvbox"
+#include ".xrdb/rofi/gruvbox"
 
-!! black dark/light
-*color0: #073642
-*color8: #002b36
-
-!! red dark/light
-*color1: #dc322f
-*color9: #cb4b16
-
-!! green dark/light
-*color2: #859900
-*color10: #586e75
-
-!! yellow dark/light
-*color3: #b58900
-*color11: #657b83
-
-!! blue dark/light
-*color4: #268bd2
-*color12: #839496
-
-!! magenta dark/light
-*color5: #d33682
-*color13: #6c71c4
-
-!! cyan dark/light
-*color6: #2aa198
-*color14: #93a1a1
-
-!! white dark/light
-*color7: #eee8d5
-*color15: #fdf6e3
-
-! Enable the extended coloring options
-rofi.color-enabled: true
-!
-! Property Name     BG       Border   Separator
-rofi.color-window:  #073642, #073642, #002b36
-!
-! Property Name     BG       FG       BG-alt   Head-BG  Head-FG
-rofi.color-normal:  #073642, #93a1a1, #073642, #073642, #fdf6e3
-rofi.color-active:  #073642, #268bd2, #073642, #073642, #268bd2
-rofi.color-urgent:  #073642, #dc322f, #073642, #073642, #dc322f
-!
-! Set the desired separator style
-rofi.separator-style: solid
-! URxvt
 URxvt.font: xft:Liberation Mono for Powerline:size=14
+!URxvt.letterSpace: -5
 URxvt.scrollBar: false
 URxvt.visualBell: false
-URxvt.background: #002b36
-URxvt.foreground: #657b83
+URxvt.perl-ext-common: default,selection-to-clipboard,pasta,matcher
+URxvt.clipboard.autocopy: true
+URxvt.underlineURLs: True
+URxvt.url-launcher: /usr/bin/google-chrome
+URxvt.matcher.button: 1
+URxvt.keysym.M-Escape:perl:keyboard-select:activate
+URxvt.keysym.Control-Shift-V:perl:pasta:paste
+
+rofi.terminal: urxvt

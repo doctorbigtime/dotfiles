@@ -1,0 +1,58 @@
+#!/bin/bash
+dst="$HOME/git/dotfiles/$(hostname)"
+
+files=(
+.zshrc
+.bashrc
+.zprofile
+.profile
+.vimrc
+.xinitrc
+.alacritty.yml
+.zsh
+.xrdb
+.Xresources
+.gdbinit
+.tmux.conf
+.vim/colors
+.vim/UltiSnips
+.config/i3
+.config/bspwm
+.config/polybar
+.config/sxhkd
+.config/compton.conf
+bin
+)
+
+usage() {
+    echo "USAGE:"
+    echo "$0 [remote|local]"
+}
+
+declare -a to_sync
+
+direction=${1:-remote}
+case "$direction" in
+    remote)
+        cd $HOME
+        for f in ${files[@]}
+        do
+            [[ -f "$f" || -d "$f" ]] && to_sync+=($f)
+        done
+        echo "Will sync: ${to_sync[@]}"
+        rsync -Rr ${to_sync[@]} ${dst}
+    ;;
+    local)
+        cd $dst
+        for f in ${files[@]}
+        do
+            [[ -f "$f" || -d "$f" ]] && to_sync+=($f)
+        done
+        echo "Will sync: ${to_sync[@]}"
+        rsync -Rr ${to_sync[@]} $HOME/tmp/x
+    ;;
+    *)
+        usage
+    ;;
+esac
+

@@ -1,0 +1,24 @@
+#!/bin/bash
+
+case $1 in
+start|on)
+#pulseaudio -k
+bluetoothctl <<-EOF
+power on
+agent on
+default-agent
+EOF
+bluetoothctl <<< "connect 00:0E:DD:04:E2:98"
+sleep 2
+;;
+stop|off)
+bluetoothctl <<-EOF
+agent off
+power off
+EOF
+;;
+restart)
+$0 stop
+$0 start
+;;
+esac

@@ -26,11 +26,15 @@ zstyle ':completion:*' verbose true
 # case insensitive search
 zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}' 'r:|=*' 'l:|=* r:|=*'
 
+# colors for file completion 
 zstyle ':completion:*' list-colors ${(s.:.)LS_COLORS}
+# list for process selection
 zstyle ':completion:*:*:*:*:processes' command 'ps -u $USER -o pid,user,args -w'
+# colors for process selection
 zstyle ':completion:*:*:kill:*:processes' list-colors '=(#b) #([0-9]#) ([0-9a-z-]#)*=01;34=0=01'
 zstyle ':completion:*:*:kill:*' force-list always
 
+# order of appearance for cd selection
 zstyle ':completion:*:cd:*' tag-order local-directories directory-stack path-directories
 
 # pick image files first, if fail, pick all files.

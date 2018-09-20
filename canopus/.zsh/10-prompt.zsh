@@ -1,4 +1,4 @@
-# Slightly modified copy of agnoster theme in oh-my-zsh
+# Modified copy of agnoster theme in oh-my-zsh
 
 # vim:ft=zsh ts=2 sw=2 sts=2
 
@@ -48,7 +48,7 @@ prompt_end() {
     echo -n "%{%k%}"
   fi
   echo -n "%{%f%}"
-  CURRENT_BG=''
+  CURRENT_BG='NONE'
 }
 
 ### Prompt components
@@ -57,7 +57,7 @@ prompt_end() {
 # Context: user@hostname (who am I and where am I)
 prompt_context() {
   if [[ -n "$SSH_CLIENT" ]]; then
-    prompt_segment black default "%(!.%{%F{yellow}%}.)$USER@%m"
+    prompt_segment 15 black "%(!.%{%F{yellow}%}.)$USER@%m"
   fi
 }
 
@@ -77,9 +77,9 @@ prompt_git() {
     dirty=$(git status --porcelain)
     ref=$(git symbolic-ref HEAD 2> /dev/null) || ref="$(git describe --exact-match --tags)" || ref="➦ $(git rev-parse --short HEAD 2> /dev/null)"
     if [[ -n $dirty ]]; then
-      prompt_segment yellow black
+      prompt_segment 237 yellow
     else
-      prompt_segment green black
+      prompt_segment 237 green
     fi
 
     if [[ -e "${repo_path}/BISECT_LOG" ]]; then
@@ -104,74 +104,16 @@ prompt_git() {
   fi
 }
 
-prompt_bzr() {
-    (( $+commands[bzr] )) || return
-    if (bzr status >/dev/null 2>&1); then
-        status_mod=`bzr status | head -n1 | grep "modified" | wc -m`
-        status_all=`bzr status | head -n1 | wc -m`
-        revision=`bzr log | head -n2 | tail -n1 | sed 's/^revno: //'`
-        if [[ $status_mod -gt 0 ]] ; then
-            prompt_segment yellow black
-            echo -n "bzr@"$revision "✚ "
-        else
-            if [[ $status_all -gt 0 ]] ; then
-                prompt_segment yellow black
-                echo -n "bzr@"$revision
-
-            else
-                prompt_segment green black
-                echo -n "bzr@"$revision
-            fi
-        fi
-    fi
-}
-
-prompt_hg() {
-  (( $+commands[hg] )) || return
-  local rev status
-  if $(hg id >/dev/null 2>&1); then
-    if $(hg prompt >/dev/null 2>&1); then
-      if [[ $(hg prompt "{status|unknown}") = "?" ]]; then
-        # if files are not added
-        prompt_segment red white
-        st='±'
-      elif [[ -n $(hg prompt "{status|modified}") ]]; then
-        # if any modification
-        prompt_segment yellow black
-        st='±'
-      else
-        # if working copy is clean
-        prompt_segment green black
-      fi
-      echo -n $(hg prompt "☿ {rev}@{branch}") $st
-    else
-      st=""
-      rev=$(hg id -n 2>/dev/null | sed 's/[^-0-9]//g')
-      branch=$(hg id -b 2>/dev/null)
-      if `hg st | grep -q "^\?"`; then
-        prompt_segment red black
-        st='±'
-      elif `hg st | grep -q "^[MA]"`; then
-        prompt_segment yellow black
-        st='±'
-      else
-        prompt_segment green black
-      fi
-      echo -n "☿ $rev@$branch" $st
-    fi
-  fi
-}
-
 # Dir: current working directory
 prompt_dir() {
-  prompt_segment blue black '%~'
+  prompt_segment 8 black '%~'
 }
 
 # Virtualenv: current working virtualenv
 prompt_virtualenv() {
   local virtualenv_path="$VIRTUAL_ENV"
   if [[ -n $virtualenv_path && -n $VIRTUAL_ENV_DISABLE_PROMPT ]]; then
-    prompt_segment blue black "(`basename $virtualenv_path`)"
+    prompt_segment 166 black "(`basename $virtualenv_path`)"
   fi
 }
 
@@ -186,8 +128,9 @@ prompt_status() {
   [[ $UID -eq 0 ]] && symbols+="%{%F{yellow}%}⚡"
   [[ $(jobs -l | wc -l) -gt 0 ]] && symbols+="%{%F{cyan}%}⚙"
   symbols+="%#"
-
-  [[ -n "$symbols" ]] && prompt_segment black default "\n$symbols"
+  # new line
+  echo
+  prompt_segment 8 black "$symbols"
 }
 
 ## Main prompt
@@ -197,8 +140,7 @@ build_prompt() {
   prompt_context
   prompt_dir
   prompt_git
-  prompt_bzr
-  prompt_hg
+  prompt_end
   prompt_status
   prompt_end
 }
