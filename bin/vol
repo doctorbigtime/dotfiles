@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# sets/gets system volume for pulseaudio, fallback to ALSA.
+
 pa_volume() 
 {
     sink=$(pacmd stat 2> /dev/null | grep "Default sink" | awk '{ print $NF }')
