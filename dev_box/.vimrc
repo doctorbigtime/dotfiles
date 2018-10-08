@@ -1,28 +1,48 @@
+" Section: Options {{{
+" --------------------
 set nocompatible
 filetype on
 filetype plugin on
 syntax on
-set ts=4
-set sw=4
-set ai
-set nu
-set hlsearch
-set ignorecase
-set smartcase
-set expandtab
+
+set ts=4       " tabs are 4 columns
+set sw=4       " number of spaces to insert for reindent
+set shiftround " round indent to next multiple of sw
+set expandtab  " turn tabs into spaces
+set ai         " autoindent
+set number     " show line numbers
+set tw=0       " no maximum line length by default
+"set relativenumber " set line numbering relative to current line
+
+set hlsearch   " highlight searches
+set ignorecase " ignore case while searching
+set smartcase  " ...unless there is a capital letter
 set noswapfile
 
-" automatically install pathogen / plug
-if empty(glob('~/.vim/autoload/pathogen.vim'))
-    silent !curl -fLo ~/.vim/autoload/pathogen.vim --create-dirs 
-        \ https://tpo.pe/pathogen.vim
-endif
+set autowrite  " write before :make and :next
 
-if empty(glob('~/.vim/autoload/plug.vim'))
-    silent !curl -fLo ~/.vim/autoload/plug.vim --create-dirs
-        \ https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
-    autocmd VimEnter * PlugInstall --sync | source $MYVIMRC
-endif
+" Make spacebar work like :
+noremap <space> :
+
+set showcmd     " show commands.
+set cmdheight=2 " show 2 lines of commands
+
+set lazyredraw  " don't redraw during macros
+set ff=unix     " unix file format
+
+set showmatch   " show matching brackets
+set matchtime=1 " ... for 0.1 seconds
+
+" do not show invisible characters
+set nolist
+" toggle invisible characters
+nnoremap <Leader>i :set list!<cr>
+" map invisible characters to these. 
+set listchars=tab:▸\ ,eol:¬,trail:.,extends:»,precedes:«,nbsp:.
+
+" }}}
+" Section: Variables {{{
+" ----------------------
 
 " Returns output of system() call chomped.
 function! ChompedSystem(...)
@@ -39,8 +59,25 @@ elseif match(hostname, 'boerboel')
     let is_work=1
 endif
 
-" Plugin management
-execute pathogen#infect()
+" Some directories
+let g:source_roots=[$HOME . '/git/src']
+if is_work
+let g:source_roots=[$HOME . '/src/vplat', $HOME . '/src/marcrepo/greyhound']
+endif
+
+set tags=./tags,../tags,../../tags,$HOME/git/src/tags
+let path='.,../include,./include,' . join(g:source_roots, ',') . ',/usr/include'
+
+
+" }}}
+" Section: Plugins {{{
+" --------------------
+
+if empty(glob('~/.vim/autoload/plug.vim'))
+    silent !curl -fLo ~/.vim/autoload/plug.vim --create-dirs
+        \ https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
+    autocmd VimEnter * PlugInstall --sync | source $MYVIMRC
+endif
 
 call plug#begin('~/.vim/plugged')
 
@@ -71,29 +108,25 @@ Plug 'SirVer/ultisnips'
 
 call plug#end()
 
-" TESTING ULTISNIPS
-let g:UltiSnipsJumpForwardTrigger = '<tab>'
-let g:UltiSnipsJumpBackwardTrigger = '<s-tab>'
+" }}}
+" Section: Autocmds {{{
+" ---------------------
+autocmd BufReadPost ~/.Xresources call system('xrdb -load ' . expand('%'))
 
+augroup ft_options
+    autocmd!
+    autocmd FileType cpp    setlocal commentstring=//\ %s
+augroup END
 
-" Do i need this?
-runtime! ftplugin/man.vim
+augroup hl_todos
+    au!
+    au BufNewFile,BufRead *.cpp,*.h,*.hpp,*.cc syn match cppTodo "\<\(TODO\|FIXME\|XXX\):"
+    au BufNewFile,BufRead ~/.vimrc,*.vim syn match vimTodo "\<\(TODO\|FIXME\|XXX\|FOOBAR\):"
+augroup END
 
-" Language specific settings
-let python_highlight_all=1
-let c_no_curly_error=1
-let $PAGER=''
-
-" Some directories
-let g:source_roots=[$HOME . '/git/src']
-if is_work
-"let g:source_root=$HOME . '/src/vplat'
-let g:source_roots=[$HOME . '/src/vplat', $HOME . '/src/marcrepo/greyhound']
-endif
-
-set tags=./tags,../tags,../../tags,$HOME/git/src/tags
-let path='.,../include,./include' . join(g:source_roots, ',') . ',/usr/include'
-
+" }}}
+" Section: Functions {{{
+" ----------------------
 
 " Searching
 function! DoRGrep(...)
@@ -122,6 +155,7 @@ function! DoAg(...)
     let s:cmd='ag --cpp --vimgrep "' . query . '" ' . join(g:source_roots, ' ')
     "call asyncrun#run('<bang>', '', s:cmd)
     "copen
+    " TODO: run asynchronously, but put output into fzf window.
     call fzf#run({'source': s:cmd, 'down': '25%', 'sink': function('EditGrepOutput')})
 endfunction
 command! -nargs=? Ag call DoAg(<args>)
@@ -133,10 +167,11 @@ function! EditGrepOutput(what)
 endfunction
 
 function! TypeDef(typename)
-    let s:cmd = 'ag --cpp --vimgrep "(struct|class) +' . a:typename . '" ' . join(g:source_roots, ' ')
+    let s:cmd = 'ag --cpp --vimgrep "(struct|class)( +V.._DECLARE_EXPORT)? +' . a:typename . '" ' . join(g:source_roots, ' ')
     call fzf#run({'source': s:cmd, 'down': '25%', 'sink': function('EditGrepOutput')})
 endfunction
 noremap <Leader>gt :call TypeDef(expand('<cword>'))<CR>
+command! -nargs=1 TD :call TypeDef(<f-args>)<CR>
 
 " Build related stuff
 let g:build_cores=15
@@ -277,14 +312,39 @@ function! DiffWithSaved()
 endfunction
 command! DiffSaved call DiffWithSaved()
 
-" Some mappings/time savers
-inoreabbrev pybang #!/usr/bin/env python
-inoreabbrev shebang #!/usr/bin/env bash
-inoreabbrev teh the
+function! s:googleIt(pat)
+    let q = '"' . substitute(a:pat, '["\n]', ' ', 'g') . '"'
+    let q = substitute(q, '[[:punct:]]', '\=printf("%%%02X", char2nr(submatch(0)))', 'g')
+    echo printf('mimeopen "https://www.google.com/search?q=%s"', q)
+endfunction
+nnoremap <silent> <Leader>? :call <SID>googleIt(expand("<cWORD>"))<cr>
+
+" This diffs the working version of a file with the latest svn commited version.
+function! DiffWithSVN()
+    let filetype=&ft
+    diffthis
+    vnew | r! svn cat #
+    normal! 1Gdd
+    diffthis
+    execute "setlocal bt=nofile bh=wipe nobl noswf ro ft=" . filetype
+endfunction
+command! DiffSVN call DiffWithSVN()
+
+" }}}
+" Section: Misc commands and maps {{{
+" -----------------------------------
+
+" Sort alphabetically ignoring case
+nnoremap <Leader>sa :sort i<cr>
+
+" Make a scratch pad
+command! -bar -nargs=? -bang Scratch :silent split| enew<bang>|set buftype=nofile bufhidden=hide noswapfile buflisted filetype=<args>
 
 " global find/replace
 nnoremap <F4> :%s///g<LEFT><LEFT><LEFT>
 
+" edit .vimrc
+nnoremap <Leader>ev :e ~/.vimrc<CR>
 " reload .vimrc
 nnoremap <Leader>sv :execute 'source ~/.vimrc'<CR>
 
@@ -295,10 +355,70 @@ vnoremap <c-]> g<c-]>
 nnoremap <c-w><c-]> <c-w>g<c-]>
 vnoremap <c-w><c-]> <c-w>g<c-]>
 
+" Do i need this?
+runtime! ftplugin/man.vim
+
+" Some mappings/time savers
+inoreabbrev pybang  #!/usr/bin/env python
+inoreabbrev shebang #!/usr/bin/env bash
+inoreabbrev teh the
+
+" Section: Experiment {{{
+" -----------------------
+" FIXME
+function! s:HiInterestingWord(n)
+    normal! mz
+    normal! "zyiw
+    let mid = 86750 + a:n
+    silent! call matchdelete(mid)
+    let pat = '\<' . escape(@z, '\') . '\>'
+    echo pat
+    call matchadd('InterestingWord' . a:n, pat, 1, mid)
+    normal! `z
+endfunction
+nnoremap <silent> <Leader>h1 :call <SID>HiInterestingWord(1)<cr>
+nnoremap <silent> <Leader>h2 :call <SID>HiInterestingWord(2)<cr>
+nnoremap <silent> <Leader>h3 :call <SID>HiInterestingWord(3)<cr>
+nnoremap <silent> <Leader>h4 :call <SID>HiInterestingWord(4)<cr>
+
+" For communicating between vim instances...
+function! Paste()
+    r ~/tmp/.vim.copy
+endfunction
+
+function! Copy(line1, line2)
+    silent! exe a:line1 .',' . a:line2 . 'w! ~/tmp/.vim.copy'
+endfunction
+
+function! Cut(line1, line2)
+    call Copy(a:line1, a:line2)
+    exe a:line1 . ',' . a:line2 . 'd'
+endfunction
+
+command! -range   Y  call Copy(<line1>, <line2>)
+command! -range   YD call Cut(<line1>, <line2>)
+command! -nargs=0 P  call Paste()
+nnoremap <silent> <Leader>p :call Paste()<cr>
+
+" }}}
+" Section: Plugin options {{{
+" ---------------------------
+
+"ctrlp - FIXME nuked in favor of fzf
+"let g:ctrlp_user_command = 'find %s -name .git -prune -o -name .svn -prune -o -name CMakeFiles -prune -o -name 3p_libs\* -prune -o -name thirdparty -prune -o -name .cquery -prune -o \( -type f \) -a -not -path \*.so -not -path \*.a -not -path \*.cmake -print'
 
 " fzf
 let g:fzf_layout = { 'down': '~30%' }
 nnoremap <c-p> :FZF<CR>
+
+" UltiSnips
+let g:UltiSnipsJumpForwardTrigger = '<tab>'
+let g:UltiSnipsJumpBackwardTrigger = '<s-tab>'
+
+" Language specific settings
+let python_highlight_all=1
+let c_no_curly_error=1
+let $PAGER=''
 
 " airline
 let g:airline_powerline_fonts=1
@@ -346,7 +466,9 @@ if v:version >= 800 && executable('cquery')
     noremap <silent> gr :LspReferences<CR>
 endif
 
-" Colors!
+" }}}
+" Section: Colors! {{{
+" --------------------
 if is_laptop
     set background=dark
     let g:airline_theme='gruvbox'
@@ -356,11 +478,15 @@ if is_laptop
 else
     "let g:airline_theme='luna'
     "let g:airline_theme='dark'
-    let g:airline_theme='distinguished'
-    colorscheme molokai
+    "let g:airline_theme='distinguished'
+    "colorscheme molokai
+    let g:airline_theme='onedarkish'
+    colorscheme onedarkish
 endif
 
-" Work related.
+" }}}
+" Section: Work related {{{
+" -------------------------
 if is_work
     let g:source_roots=[$HOME . '/src/vplat', $HOME . '/src/marcrepo/greyhound']
     set path+=$HOME/src/dev/include,$HOME/src/marcrepo/greyhound
@@ -377,29 +503,21 @@ function! IncludeBoost()
     call fzf#run({'source': s:cmd, 'up':'25%', 'options': '--multi', 'sink': function('WriteSysInclude')})
 endfunction
 
-" This thing diffs the working version of a file
-" with the latest svn commited version.
-function! DiffWithSVN()
-    let filetype=&ft
-    diffthis
-    vnew | r! svn cat #
-    normal! 1Gdd
-    diffthis
-    execute "setlocal bt=nofile bh=wipe nobl noswf ro ft=" . filetype
+let g:vpl_src_dir=$HOME . '/src/vplat'
+let g:vpl_build='SEB'
+function! RebuildVpl()
+    VimuxRunCommand('bf cmake_vplat ' . g:vpl_src_dir . ' ' . g:vpl_build . ' Debug CME "-DCME_MDP3_TRADE_SUMMARIES=ON -DCME_MDP3_RESTING_TRADES=ON -DACC_ORDER_UPDATES=ON -DSTATIC_MASTERLIB=ON" && mj -C ' . g:vpl_src_dir . '/' . g:vpl_build)
 endfunction
-command! DiffSVN call DiffWithSVN()
-
-" Builds platform for m2
-function! BuildM2()
-    if v:version >= 800
-        AsyncRun make -j10 -C ~/src/dev/M2_Debug
-        copen
+function! BuildVpl()
+    let l:build_dir=g:vpl_src_dir . '/' . g:vpl_build
+    if(empty(glob(l:build_dir)))
+        echo "Rebuilding!"
+        call RebuildVpl()
     else
-        echo "No AsyncRun in this version"
+        "AsyncRun mj -j10 -C ~/src/vplat/SEB
+        "copen
+        VimuxRunCommand('mj -C ' . g:vpl_src_dir . '/' . g:vpl_build)
     endif
-endfunction
-function! RebuildM2()
-    VimuxRunCommand("~/src/dev/scripts/build/build_m2_debug.sh")
 endfunction
 
 " Builds greyhound
@@ -429,8 +547,10 @@ function! GreyhoundUnitTests()
     let l:cmd = "~/src/marcrepo/greyhound/Debug/bin/greyhound_unittest" . l:gtest_arg
     VimuxRunCommand(l:cmd)
 endfunction
-command! -nargs=0 M2 call BuildM2()
-command! -nargs=0 Rebuild call RebuildM2()
+command! -nargs=0 Build call BuildVpl()
+command! -nargs=0 Rebuild call RebuildVpl()
 command! -nargs=0 BG call BuildGreyhound()
 command! -nargs=0 RG call RebuildGreyhound()
 command! -nargs=0 UT call GreyhoundUnitTests()
+
+" }}}

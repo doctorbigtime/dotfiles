@@ -29,21 +29,28 @@ using ::testing::Ref;
 using ::testing::NiceMock;
 using ::testing::StrictMock;
 
-TEST(test_${1:thing}, ${2:specific_thing})
+TEST(test${1:_thing}, ${2:specific_thing})
 {
 	${0:// assertions}
 }
 endsnippet
 
 snippet gtest
-TEST(test_${1:thing}, ${2:specific_thing})
+TEST(test${1:_thing}, ${2:specific_thing})
+{
+	${0:// assertions}
+}
+endsnippet
+
+snippet gtestf
+TEST_F(test${1:_thing}, ${2:specific_thing})
 {
 	${0:// assertions}
 }
 endsnippet
 
 snippet fixture
-struct ${1:test_fixture} : public ::testing::Test
+struct ${1:testfixture} : public ::testing::Test
 {
 	$1()
 	{
