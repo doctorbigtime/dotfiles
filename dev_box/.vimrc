@@ -179,33 +179,10 @@ if is_laptop
     let g:build_cores=4
 endif
 
+"let g:gcc_basic_libraries='-lboost_system'
 let g:gcc_basic_libraries=''
 let g:gcc_basic_includes=''
-let g:gcc_basic_cmd='g++ -g -Wall -pthread -std=c++17'
-let g:clang_basic_cmd='clang++ -g -Wall -pthread -std=c++17'
-
-function! CompileAsm()
-    let build_cmd=g:gcc_basic_cmd . ' -S ' . g:gcc_basic_includes . ' '
-                \ . expand('%') . ' -o - '
-    vnew | execute "r! " build_cmd | normal! 1Gdd
-    execute "set ft=asm"
-endfunction
-
-function! BuildGcc()
-    let build_cmd=g:gcc_basic_cmd . ' ' . g:gcc_basic_includes . ' '
-                \ . expand('%') . ' -o ' . expand('%:r') . ' '
-                \ . g:gcc_basic_libraries
-    call asyncrun#run('<bang>', '', build_cmd)
-    copen
-endfunction
-
-function! BuildClang()
-    let build_cmd=g:clang_basic_cmd . ' ' . g:gcc_basic_includes . ' '
-                \ . expand('%') . ' -o ' . expand('%:r') . ' '
-                \ . g:gcc_basic_libraries
-    call asyncrun#run('<bang>', '', build_cmd)
-    copen
-endfunction
+let g:gcc_basic_cmd='g++ -g -Wall -pthread -std=c++1y'
 
 function! BuildMake(where)
     let make_cmd='make -C ' . a:where . ' -j' . g:build_cores
@@ -243,7 +220,11 @@ function! BuildCPP()
         call BuildCMake('.')
     else
         " Basic single file build.
-        call BuildGcc()
+        let build_cmd=g:gcc_basic_cmd . ' ' . g:gcc_basic_includes . ' '
+                    \ . expand('%') . ' -o ' . expand('%:r') . ' '
+                    \ . g:gcc_basic_libraries
+        call asyncrun#run('<bang>', '', build_cmd)
+        copen
     endif
 endfunction
 
@@ -295,12 +276,9 @@ endfunction
 command! -nargs=0 Make call BuildCPP()
 command! -nargs=0 Rebuild call RebuildCPP()
 command! -nargs=0 UnitTests call RunUnitTests()
-command! -nargs=0 Gcc call BuildGcc()
-command! -nargs=0 Clang call BuildClang()
-command! -nargs=0 Asm call CompileAsm()
-nnoremap <F8> :Gcc<CR>
 nnoremap <F9> :Make<CR>
 nnoremap <F10> :Rebuild<CR>
+nnoremap <F8> :UnitTests<CR>
 
 " Utilities
 function! DiffWithSaved()
@@ -408,8 +386,8 @@ nnoremap <silent> <Leader>p :call Paste()<cr>
 "let g:ctrlp_user_command = 'find %s -name .git -prune -o -name .svn -prune -o -name CMakeFiles -prune -o -name 3p_libs\* -prune -o -name thirdparty -prune -o -name .cquery -prune -o \( -type f \) -a -not -path \*.so -not -path \*.a -not -path \*.cmake -print'
 
 " fzf
-let g:fzf_layout = { 'down': '~30%' }
-nnoremap <c-p> :FZF<CR>
+let g:fzf_laylout = { 'down': '~30%' }
+nnoremap <C-P> :FZF<CR>
 
 " UltiSnips
 let g:UltiSnipsJumpForwardTrigger = '<tab>'
@@ -446,35 +424,33 @@ endif
 " let g:lsp_log_verbose = 1
 " let g:lsp_log_file = expand('~/vim-lsp.log')
 
-if v:version >= 800 && executable('cquery')
-    au User lsp_setup call lsp#register_server({
-        \ 'name': 'cquery',
-        \ 'cmd': {server_info->['cquery']},
-        \ 'root': {server_info->lsp#utils#path_to_uri(lsp#utils#find_nearest_parent_file_directory(lsp#utils#get_buffer_path(), 'compile_commands.json'))},
-        \ 'initialization_options': {
-        \   'cacheDirectory': $HOME . '/.cquery/',
-        \   'index': {
-        \       'whitelist': ['boost/asio'],
-        \       'blacklist': ['usr'],
-        \   },
-        \ },
-        \ 'whitelist': ['c', 'cc', 'cpp', 'objc', 'objcpp'],
-        \ })
-    autocmd FileType cpp setlocal omnifunc=lsp#complete
-    noremap <silent> gd :LspDefinition<CR>
-    noremap <silent> <F2> :LspRename<CR>
-    noremap <silent> gr :LspReferences<CR>
-endif
+" if v:version >= 800 && executable('cquery')
+"     au User lsp_setup call lsp#register_server({
+"         \ 'name': 'cquery',
+"         \ 'cmd': {server_info->['cquery']},
+"         \ 'root': {server_info->lsp#utils#path_to_uri(lsp#utils#find_nearest_parent_file_directory(lsp#utils#get_buffer_path(), 'compile_commands.json'))},
+"         \ 'initialization_options': {
+"         \   'cacheDirectory': $HOME . '/.cquery/',
+"         \   'index': {
+"         \       'whitelist': ['boost/asio'],
+"         \       'blacklist': ['usr'],
+"         \   },
+"         \ },
+"         \ 'whitelist': ['c', 'cc', 'cpp', 'objc', 'objcpp'],
+"         \ })
+"     autocmd FileType cpp setlocal omnifunc=lsp#complete
+"     noremap <silent> gd :LspDefinition<CR>
+"     noremap <silent> <F2> :LspRename<CR>
+"     noremap <silent> gr :LspReferences<CR>
+" endif
 
 " }}}
 " Section: Colors! {{{
 " --------------------
 if is_laptop
     set background=dark
-    let g:airline_theme='gruvbox'
-    colorscheme gruvbox
-    "let g:airline_theme='solarized'
-    "colorscheme solarized
+    let g:airline_theme='solarized'
+    colorscheme solarized
 else
     "let g:airline_theme='luna'
     "let g:airline_theme='dark'
@@ -488,8 +464,7 @@ endif
 " Section: Work related {{{
 " -------------------------
 if is_work
-    let g:source_roots=[$HOME . '/src/vplat', $HOME . '/src/marcrepo/greyhound']
-    set path+=$HOME/src/dev/include,$HOME/src/marcrepo/greyhound
+    set path+=$HOME/src/vplat/include,$HOME/src/marcrepo/greyhound
 endif
 
 " TODO: Playing around with fzf

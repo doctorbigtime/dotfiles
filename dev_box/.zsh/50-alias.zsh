@@ -41,6 +41,13 @@ ark() {
     fi
 }
 
+bak() {
+    if [[ -f $1 ]]; then
+        [[ -f ${1}.bak ]] && bak ${1}.bak
+        cp ${1} ${1}.bak
+    fi
+}
+
 f(){
     find . -name .git -prune -o -name .svn -prune -o -name CMakeFiles -prune -o -name .conda -prune -o -name .cquery -prune -o -name .cquery_cache -prune -o -name opt -prune -o $@ -print | fzf -m
 }

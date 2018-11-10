@@ -20,6 +20,8 @@ DIRSTACKSIZE=8
 setopt autopushd pushdminus pushdsilent pushdignoredups
 setopt autocd
 
+setopt interactivecomments
+
 # history
 HISTFILE=~/.zsh_history
 HISTSIZE=1024
@@ -27,5 +29,8 @@ SAVEHIST=1024
 setopt append_history
 unsetopt share_history
 unsetopt inc_append_history
+
+# i want my core files
+ulimit -c unlimited
 
 set -o vi
