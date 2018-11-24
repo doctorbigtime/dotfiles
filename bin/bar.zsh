@@ -219,7 +219,7 @@ power() {
 }
 
 vpn() {
-    if ip addr | grep -q vpn; then
+    if ip addr | egrep -q "(vpn|ppp0)"; then
         segment
         echo -ne "\uf3ed VPN"
     fi
