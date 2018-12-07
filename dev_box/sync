@@ -14,7 +14,7 @@ files=(
 .Xresources
 .gdbinit
 .tmux.conf
-.vim/colors/molokai.vim
+.vim
 .config/i3
 .config/bspwm
 .config/polybar
@@ -44,6 +44,7 @@ case "$direction" in
         for f in ${files[@]}
         do
             echo "copying git/dotfiles/$f to $HOME"
+			[[ -f "${dst}/${f}" || -d "${dst}/${f}" ]] && rsync -r ${dst}/${f} ${HOME}/
         done
     ;;
     *)
