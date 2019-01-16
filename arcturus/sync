@@ -14,7 +14,7 @@ files=(
 .Xresources
 .gdbinit
 .tmux.conf
-.vim/colors/molokai.vim
+.vim/colors
 .config/i3
 .config/bspwm
 .config/polybar

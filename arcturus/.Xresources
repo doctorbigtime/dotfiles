@@ -2,7 +2,7 @@
 #include ".xrdb/rofi/synthwave"
 
 !URxvt.font: xft:Roboto Mono for Powerline:size=14
-URxvt.font: xft:DejaVu Sans Mono for Powerline:size=12
+URxvt.font: xft:DejaVu Sans Mono for Powerline:size=12,xft:Font Awesome 5 Free:style=Solid:size=14
 !URxvt.font: xft:Source Code Pro for Powerline:size=14
 !URxvt.letterSpace: -5
 URxvt.scrollBar: false

@@ -16,6 +16,6 @@ if [ -d $HOME/.zsh ]; then
 fi
 [ -f $HOME/.dircolors ] && eval `dircolors $HOME/.dircolors`
 
-#zshsh=/usr/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
-#[ -f $zshsh ] && source $zshsh
+zshsh=/usr/share/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+[ -f $zshsh ] && source $zshsh
 #[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
