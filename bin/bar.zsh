@@ -96,17 +96,13 @@ cpu() {
     [[ -f /tmp/last_cpu.txt ]] || return
     percent=$(cat /tmp/last_cpu.txt)
     segment
-    #echo -ne "\uf2db ${percent}"
     echo -ne "\uf1fe ${percent}%"
 }
 
 hwmon_watercooling() {
     let cpu_temp=$(cat /sys/class/hwmon/hwmon2/temp2_input)/1000
-    #let fan_rpm=$(cat /sys/class/hwmon/hwmon1/fan2_input)
     segment
     echo -ne "\uf2c9 $cpu_temp°"
-    #segment
-    #echo -ne "\uf110 $fan_rpm RPM"
     if [[ -x $(command -v visioncli) ]]; then
         coolant_temp=$(visioncli -t1)
         segment
@@ -160,7 +156,7 @@ sound_pulseaudio() {
         echo -ne "$ico $volume%"
     else
         ico="\uf026"
-        echo -ne "$ico"
+        echo -ne "$ico [MUTED]"
     fi
 }
 

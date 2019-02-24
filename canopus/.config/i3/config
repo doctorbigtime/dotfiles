@@ -48,7 +48,7 @@ bindsym $alt+F4 kill
 # start dmenu (a program launcher)
 bindsym $mod+F1 exec dmenu_run
 bindsym $mod+F3 exec rofi -show run
-bindsym $alt+space exec rofi -show run
+bindsym $mod+space exec rofi -show run
 # There also is the (new) i3-dmenu-desktop which only displays applications
 # shipping a .desktop file. It is a wrapper around dmenu, so you need that
 # installed.
@@ -96,7 +96,7 @@ bindsym $mod+f fullscreen toggle
 bindsym $mod+Shift+space floating toggle
 
 # change focus between tiling / floating windows
-bindsym $mod+space focus mode_toggle
+bindsym $alt+tab focus mode_toggle
 
 # focus the parent container
 bindsym $mod+a focus parent
