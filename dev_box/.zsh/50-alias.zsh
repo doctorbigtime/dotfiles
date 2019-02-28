@@ -74,7 +74,7 @@ fkill() {
 }
 
 fr() {
-    egrep -n -r "$@" | fzf --ansi
+    egrep --color=auto -I --include \*.h --include \*.cpp --include \*.hpp --include \*.c --exclude-dir={.git,.svn,.cquery} -n -r "$@" | fzf --ansi
 }
 
 fgo() {
@@ -85,9 +85,29 @@ fgo() {
 }
 
 fp() {
-    echo -n "$(pacman --color always "${@:--Ss}" \
-        | sed 'N;s/\n//' \
-        | fzf -m --ansi \
-        | sed 's/ .*//')"
+    if grep -q debian /etc/os-release > /dev/null; then
+        echo -n "$(apt-cache search "${@:-.}" \
+            | fzf -m --ansi \
+            | sed 's/ .*//')"
+    else
+        echo -n "$(pacman --color always "${@:--Ss}" \
+            | sed 'N;s/\n//' \
+            | fzf -m --ansi \
+            | sed 's/ .*//')"
+    fi
 }
 
+fip() {
+    dpkg -l $@ | tail +6 | fzf -m | awk '{ print $2 }'
+}
+
+man() {
+LESS_TERMCAP_mb=$'\e[0;31m' \
+LESS_TERMCAP_md=$'\e[0;35m' \
+LESS_TERMCAP_me=$'\e[0m' \
+LESS_TERMCAP_se=$'\e[0m' \
+LESS_TERMCAP_so=$'\e[01;31;31m' \
+LESS_TERMCAP_ue=$'\e[0m' \
+LESS_TERMCAP_us=$'\e[0;36m' \
+command man "$@"
+}

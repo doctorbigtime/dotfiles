@@ -55,7 +55,7 @@ let is_work=0
 let hostname=ChompedSystem('hostname')
 if hostname == 'canopus'
     let is_laptop=1
-elseif match(hostname, 'boerboel')
+elseif match(hostname, 'boerboel') != -1
     let is_work=1
 endif
 
@@ -182,7 +182,31 @@ endif
 "let g:gcc_basic_libraries='-lboost_system'
 let g:gcc_basic_libraries=''
 let g:gcc_basic_includes=''
-let g:gcc_basic_cmd='g++ -g -Wall -pthread -std=c++1y'
+let g:gcc_basic_cmd='g++ -g -Wall -pthread -std=c++17'
+let g:clang_basic_cmd='clang++ -g -Wall -pthread -std=c++17'
+
+function! CompileAsm()
+    let build_cmd=g:gcc_basic_cmd . ' -S ' . g:gcc_basic_includes . ' '
+                \ . expand('%') . ' -o - '
+    vnew | execute "r! " build_cmd | normal! 1Gdd
+    execute "set ft=asm"
+endfunction
+
+function! BuildGcc()
+    let build_cmd=g:gcc_basic_cmd . ' ' . g:gcc_basic_includes . ' '
+                \ . expand('%') . ' -o ' . expand('%:r') . ' '
+                \ . g:gcc_basic_libraries
+    call asyncrun#run('<bang>', '', build_cmd)
+    copen
+endfunction
+
+function! BuildClang()
+    let build_cmd=g:clang_basic_cmd . ' ' . g:gcc_basic_includes . ' '
+                \ . expand('%') . ' -o ' . expand('%:r') . ' '
+                \ . g:gcc_basic_libraries
+    call asyncrun#run('<bang>', '', build_cmd)
+    copen
+endfunction
 
 function! BuildMake(where)
     let make_cmd='make -C ' . a:where . ' -j' . g:build_cores
@@ -220,11 +244,7 @@ function! BuildCPP()
         call BuildCMake('.')
     else
         " Basic single file build.
-        let build_cmd=g:gcc_basic_cmd . ' ' . g:gcc_basic_includes . ' '
-                    \ . expand('%') . ' -o ' . expand('%:r') . ' '
-                    \ . g:gcc_basic_libraries
-        call asyncrun#run('<bang>', '', build_cmd)
-        copen
+        call BuildGcc()
     endif
 endfunction
 
@@ -276,6 +296,10 @@ endfunction
 command! -nargs=0 Make call BuildCPP()
 command! -nargs=0 Rebuild call RebuildCPP()
 command! -nargs=0 UnitTests call RunUnitTests()
+command! -nargs=0 Gcc call BuildGcc()
+command! -nargs=0 Clang call BuildClang()
+command! -nargs=0 Asm call CompileAsm()
+nnoremap <F8> :Gcc<CR>
 nnoremap <F9> :Make<CR>
 nnoremap <F10> :Rebuild<CR>
 nnoremap <F8> :UnitTests<CR>
@@ -325,6 +349,8 @@ nnoremap <F4> :%s///g<LEFT><LEFT><LEFT>
 nnoremap <Leader>ev :e ~/.vimrc<CR>
 " reload .vimrc
 nnoremap <Leader>sv :execute 'source ~/.vimrc'<CR>
+" scratch pad
+command! -bar -nargs=? -bang Scratch :silent enew<bang>|set buftype=nofile bufhidden=hide noswapfile buflisted filetype=<arg>
 
 " better tag jumping
 nnoremap <c-]> g<c-]>
@@ -449,8 +475,10 @@ endif
 " --------------------
 if is_laptop
     set background=dark
-    let g:airline_theme='solarized'
-    colorscheme solarized
+    let g:airline_theme='gruvbox'
+    colorscheme gruvbox
+    "let g:airline_theme='solarized'
+    "colorscheme solarized
 else
     "let g:airline_theme='luna'
     "let g:airline_theme='dark'
