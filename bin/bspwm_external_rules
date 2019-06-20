@@ -1,0 +1,15 @@
+#!/bin/bash
+wid=$1
+class=$2
+instance=$3
+
+#echo "wid: $wid class: $class instance: $3" >> $HOME/external_rules.txt
+
+if [ "$instance" = "chromium" ]; then
+    if xprop -id "$wid" WM_WINDOW_ROLE | grep "pop-up"; then
+        echo "state=floating"
+    fi
+fi
+if [ "$class" = "Alacritty" -a "$instance" = "ScratchPad" ]; then
+    echo "state=floating"
+fi

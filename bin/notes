@@ -1,0 +1,2 @@
+#!/bin/bash
+alacritty --command vim ~/notes.md ; exit
