@@ -18,4 +18,6 @@ fi
 
 zshsh=/usr/share/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 [ -f $zshsh ] && source $zshsh
-#[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
+[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
+#
+export KEYTIMEOUT=1

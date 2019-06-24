@@ -41,9 +41,10 @@ case "$direction" in
         rsync -Rr ${to_sync[@]} ${dst}
     ;;
     local)
-        for f in ${files[@]}
+        for f in $dst/${files[@]}
         do
-            echo "copying git/dotfiles/$f to $HOME"
+            echo "copying $f to $HOME"
+            cp -r $f $HOME
         done
     ;;
     *)
