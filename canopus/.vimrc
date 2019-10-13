@@ -55,12 +55,12 @@ let is_work=0
 let hostname=ChompedSystem('hostname')
 if hostname == 'canopus'
     let is_laptop=1
-elseif match(hostname, 'boerboel')
+elseif match(hostname, 'boerboel') != -1
     let is_work=1
 endif
 
 " Some directories
-let g:source_roots=[$HOME . '/git/src']
+let g:source_roots=['.', $HOME . '/git/src']
 if is_work
 let g:source_roots=[$HOME . '/src/vplat', $HOME . '/src/marcrepo/greyhound']
 endif
@@ -95,6 +95,7 @@ Plug 'tpope/vim-sensible'
 Plug 'tpope/vim-surround'
 Plug 'tpope/vim-commentary'
 Plug 'vim-scripts/Align'
+Plug 'vim-scripts/a.vim'
 Plug 'benmills/vimux'
 Plug 'octol/vim-cpp-enhanced-highlight'
 Plug 'vim-airline/vim-airline'
@@ -127,31 +128,26 @@ let g:deoplete#enable_at_startup = 1
 let g:deoplete#sources#clang#libclang_path='/usr/lib/llvm-6.0/lib/libclang.so'
 let g:deoplete#sources#clang#clang_header='/usr/include/clang'
 
-
-
-" ULTISNIPS
-let g:UltiSnipsJumpForwardTrigger = '<tab>'
-let g:UltiSnipsJumpBackwardTrigger = '<s-tab>'
-
-
-" Do i need this?
-runtime! ftplugin/man.vim
-
 " }}}
 " Section: Autocmds {{{
 " ---------------------
+autocmd BufReadPost ~/.Xresources call system('xrdb -load ' . expand('%'))
 
 augroup ft_options
     autocmd!
     autocmd FileType cpp    setlocal commentstring=//\ %s
     autocmd FileType arduino    setlocal commentstring=//\ %s
 augroup END
-" }}}
 
-" Language specific settings
-let python_highlight_all=1
-let c_no_curly_error=1
-let $PAGER=''
+augroup hl_todos
+    au!
+    au BufNewFile,BufRead *.cpp,*.h,*.hpp,*.cc syn match cppTodo "\<\(TODO\|FIXME\|XXX\):"
+    au BufNewFile,BufRead ~/.vimrc,*.vim syn match vimTodo "\<\(TODO\|FIXME\|XXX\|FOOBAR\):"
+augroup END
+
+" }}}
+" Section: Functions {{{
+" ----------------------
 
 " Searching
 function! DoRGrep(...)
@@ -192,10 +188,11 @@ function! EditGrepOutput(what)
 endfunction
 
 function! TypeDef(typename)
-    let s:cmd = 'ag --cpp --vimgrep "(struct|class) +' . a:typename . '" ' . join(g:source_roots, ' ')
+    let s:cmd = 'ag --cpp --vimgrep "(struct|class)( +V.._DECLARE_EXPORT)? +' . a:typename . '" ' . join(g:source_roots, ' ')
     call fzf#run({'source': s:cmd, 'down': '25%', 'sink': function('EditGrepOutput')})
 endfunction
 noremap <Leader>gt :call TypeDef(expand('<cword>'))<CR>
+command! -nargs=1 TD :call TypeDef(<f-args>)<CR>
 
 " Build related stuff
 let g:build_cores=15
@@ -352,16 +349,34 @@ endfunction
 vnoremap <leader>y :w ! xclip -selection clipboard<cr>
 nnoremap <leader>p :r ! xclip -o -selection clipboard<cr>
 
-" Some mappings/time savers
-inoreabbrev pybang #!/usr/bin/env python
-inoreabbrev shebang #!/usr/bin/env bash
-inoreabbrev teh the
+function! s:googleIt(pat)
+    let q = '"' . substitute(a:pat, '["\n]', ' ', 'g') . '"'
+    let q = substitute(q, '[[:punct:]]', '\=printf("%%%02X", char2nr(submatch(0)))', 'g')
+    echo printf('mimeopen "https://www.google.com/search?q=%s"', q)
+endfunction
+nnoremap <silent> <Leader>? :call <SID>googleIt(expand("<cWORD>"))<cr>
+
+command! -nargs=0 -bang Browser call system('chromium ' . expand('%:p'))
+
+" }}}
+" Section: Misc commands and maps {{{
+" -----------------------------------
+
+" Sort alphabetically ignoring case
+nnoremap <Leader>sa :sort i<cr>
+
+" Make a scratch pad
+command! -bar -nargs=? -bang Scratch :silent split| enew<bang>|set buftype=nofile bufhidden=hide noswapfile buflisted filetype=<args>
 
 " global find/replace
 nnoremap <F4> :%s///g<LEFT><LEFT><LEFT>
 
+" edit .vimrc
+nnoremap <Leader>ev :e ~/.vimrc<CR>
 " reload .vimrc
 nnoremap <Leader>sv :execute 'source ~/.vimrc'<CR>
+" scratch pad
+command! -bar -nargs=? -bang Scratch :silent enew<bang>|set buftype=nofile bufhidden=hide noswapfile buflisted filetype=<arg>
 
 " better tag jumping
 nnoremap <c-]> g<c-]>
@@ -370,10 +385,51 @@ vnoremap <c-]> g<c-]>
 nnoremap <c-w><c-]> <c-w>g<c-]>
 vnoremap <c-w><c-]> <c-w>g<c-]>
 
+" Section: Experiment {{{
+" -----------------------
+" For communicating between vim instances...
+function! Paste()
+    r ~/tmp/.vim.copy
+endfunction
+
+function! Copy(line1, line2)
+    silent! exe a:line1 .',' . a:line2 . 'w! ~/tmp/.vim.copy'
+endfunction
+
+function! Cut(line1, line2)
+    call Copy(a:line1, a:line2)
+    exe a:line1 . ',' . a:line2 . 'd'
+endfunction
+
+command! -range   Y  call Copy(<line1>, <line2>)
+command! -range   YD call Cut(<line1>, <line2>)
+command! -nargs=0 P  call Paste()
+nnoremap <silent> <Leader>p :call Paste()<cr>
+
+function! DuplicateAndComment()
+    normal! yyP
+    :Commentary
+    normal! j
+endfunction
+
+command! DC call DuplicateAndComment()
+
+" }}}
+" Section: Plugin options {{{
+" ---------------------------
 
 " fzf
 let g:fzf_layout = { 'down': '~30%' }
 nnoremap <c-p> :FZF<CR>
+
+" UltiSnips
+let g:UltiSnipsJumpForwardTrigger = '<tab>'
+let g:UltiSnipsJumpBackwardTrigger = '<s-tab>'
+
+" Language specific settings
+let python_highlight_all=1
+let c_no_curly_error=1
+let $PAGER=''
 
 " airline
 let g:airline_powerline_fonts=1
@@ -397,6 +453,10 @@ if is_laptop
 endif
 
 " Colors!
+
+" }}}
+" Section: Colors! {{{
+" --------------------
 if is_laptop
     set background=dark
     let g:airline_theme='gruvbox'
@@ -409,3 +469,5 @@ else
     let g:airline_theme='distinguished'
     colorscheme molokai
 endif
+
+" }}}
