@@ -182,11 +182,16 @@ default_border pixel 1
 
 #assign [class="Google-chrome"] $ws2
 assign [class="krdc"] 9
+for_window [class="Frame"] floating enable
+for_window [instance="NoTile"] floating enable
+# for_window [class="URxvt"] floating enable
+
 exec compton
 exec /home/sfortas/bin/bar.zsh
 #exec /usr/bin/google-chrome
 #exec_always feh --bg-scale /home/sfortas/Pictures/r0TYu5.jpg
 #exec_always feh --bg-scale /home/sfortas/pix/eiffel.jpg
 #exec_always feh --bg-scale /home/sfortas/pix/alamanos-beach-1920x1080.jpg
-exec_always feh --bg-scale /home/sfortas/pix/paul-chadeisson-testspeed-0206.jpg
+#exec_always feh --bg-scale /home/sfortas/pix/paul-chadeisson-testspeed-0206.jpg
+exec_always feh --bg-scale /home/sfortas/pix/1029784.jpg
 

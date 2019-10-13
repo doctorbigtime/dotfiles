@@ -1,28 +1,48 @@
+" Section: Options {{{
+" --------------------
 set nocompatible
 filetype on
 filetype plugin on
 syntax on
-set ts=4
-set sw=4
-set ai
-set nu
-set hlsearch
-set ignorecase
-set smartcase
-set expandtab
+
+set ts=2       " tabs are 4 columns
+set sw=2       " number of spaces to insert for reindent
+set shiftround " round indent to next multiple of sw
+set expandtab  " turn tabs into spaces
+set ai         " autoindent
+set number     " show line numbers
+set tw=0       " no maximum line length by default
+"set relativenumber " set line numbering relative to current line
+
+set hlsearch   " highlight searches
+set ignorecase " ignore case while searching
+set smartcase  " ...unless there is a capital letter
 set noswapfile
 
-" automatically install pathogen / plug
-if empty(glob('~/.vim/autoload/pathogen.vim'))
-    silent !curl -fLo ~/.vim/autoload/pathogen.vim --create-dirs 
-        \ https://tpo.pe/pathogen.vim
-endif
+set autowrite  " write before :make and :next
 
-if empty(glob('~/.vim/autoload/plug.vim'))
-    silent !curl -fLo ~/.vim/autoload/plug.vim --create-dirs
-        \ https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
-    autocmd VimEnter * PlugInstall --sync | source $MYVIMRC
-endif
+" Make spacebar work like :
+noremap <space> :
+
+set showcmd     " show commands.
+set cmdheight=2 " show 2 lines of commands
+
+set lazyredraw  " don't redraw during macros
+set ff=unix     " unix file format
+
+set showmatch   " show matching brackets
+set matchtime=1 " ... for 0.1 seconds
+
+" do not show invisible characters
+set nolist
+" toggle invisible characters
+nnoremap <Leader>i :set list!<cr>
+" map invisible characters to these. 
+set listchars=tab:▸\ ,eol:¬,trail:.,extends:»,precedes:«,nbsp:.
+
+" }}}
+" Section: Variables {{{
+" ----------------------
 
 " Returns output of system() call chomped.
 function! ChompedSystem(...)
@@ -37,6 +57,32 @@ if hostname == 'canopus'
     let is_laptop=1
 elseif match(hostname, 'boerboel')
     let is_work=1
+endif
+
+" Some directories
+let g:source_roots=[$HOME . '/git/src']
+if is_work
+let g:source_roots=[$HOME . '/src/vplat', $HOME . '/src/marcrepo/greyhound']
+endif
+
+set tags=./tags,../tags,../../tags,$HOME/git/src/tags
+set path=.,../include,./include,/usr/include,/usr/local/include
+
+
+" }}}
+" Section: Plugins {{{
+" --------------------
+
+" automatically install pathogen / plug
+if empty(glob('~/.vim/autoload/pathogen.vim'))
+    silent !curl -fLo ~/.vim/autoload/pathogen.vim --create-dirs 
+        \ https://tpo.pe/pathogen.vim
+endif
+
+if empty(glob('~/.vim/autoload/plug.vim'))
+    silent !curl -fLo ~/.vim/autoload/plug.vim --create-dirs
+        \ https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
+    autocmd VimEnter * PlugInstall --sync | source $MYVIMRC
 endif
 
 " Plugin management
@@ -60,9 +106,6 @@ if is_laptop
 endif
 if v:version >= 800
     Plug 'prabirshrestha/async.vim'
-    Plug 'prabirshrestha/vim-lsp'
-    Plug 'prabirshrestha/asyncomplete.vim'
-    Plug 'prabirshrestha/asyncomplete-lsp.vim'
     Plug 'skywind3000/asyncrun.vim'
 endif
 if is_laptop
@@ -72,7 +115,19 @@ elseif is_work
 endif
 Plug 'SirVer/ultisnips'
 
+Plug 'Shougo/deoplete.nvim'
+Plug 'roxma/nvim-yarp'
+Plug 'roxma/vim-hug-neovim-rpc'
+Plug 'zchee/deoplete-clang'
+
 call plug#end()
+
+" Testing deoplete
+let g:deoplete#enable_at_startup = 1
+let g:deoplete#sources#clang#libclang_path='/usr/lib/llvm-6.0/lib/libclang.so'
+let g:deoplete#sources#clang#clang_header='/usr/include/clang'
+
+
 
 " ULTISNIPS
 let g:UltiSnipsJumpForwardTrigger = '<tab>'
@@ -82,17 +137,21 @@ let g:UltiSnipsJumpBackwardTrigger = '<s-tab>'
 " Do i need this?
 runtime! ftplugin/man.vim
 
+" }}}
+" Section: Autocmds {{{
+" ---------------------
+
+augroup ft_options
+    autocmd!
+    autocmd FileType cpp    setlocal commentstring=//\ %s
+    autocmd FileType arduino    setlocal commentstring=//\ %s
+augroup END
+" }}}
+
 " Language specific settings
 let python_highlight_all=1
 let c_no_curly_error=1
 let $PAGER=''
-
-" Some directories
-let g:source_roots=[$HOME . '/src/hawker']
-
-set tags=./tags,../tags,../../tags,$HOME/git/src/tags
-let path='.,../include,./include,' . join(g:source_roots, ',') . ',/usr/include'
-
 
 " Searching
 function! DoRGrep(...)
@@ -281,6 +340,17 @@ function! DiffWithSaved()
     execute "setlocal bt=nofile bh=wipe nobl noswf ro ft=" . filetype
 endfunction
 command! DiffSaved call DiffWithSaved()
+
+function! Scratch()
+  noswapfile hide enew
+  setlocal buftype=nofile
+  setlocal bufhidden=hide
+  setlocal nonu
+  file scratch
+endfunction
+
+vnoremap <leader>y :w ! xclip -selection clipboard<cr>
+nnoremap <leader>p :r ! xclip -o -selection clipboard<cr>
 
 " Some mappings/time savers
 inoreabbrev pybang #!/usr/bin/env python
