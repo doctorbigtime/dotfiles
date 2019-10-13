@@ -215,7 +215,7 @@ power() {
 }
 
 vpn() {
-    if ip addr | egrep -q "(vpn|ppp0)"; then
+    if ip addr | egrep -q "(vpn|ppp0|tun0)"; then
         segment
         echo -ne "\uf3ed VPN"
     fi
