@@ -10,6 +10,6 @@ if [ "$instance" = "chromium" ]; then
         echo "state=floating"
     fi
 fi
-if [ "$class" = "Alacritty" -a "$instance" = "ScratchPad" ]; then
+if [ "$class" = "Alacritty" -a "$instance" != "Alacritty" ]; then
     echo "state=floating"
 fi
