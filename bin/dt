@@ -1,0 +1,12 @@
+#!/bin/bash
+# returns date in human readable form if it's a timestamp or the current timestamp
+if [ $# -gt 0 ]; then
+    arg=$1
+    if [ ${arg:0:1} == "1" ]; then
+        date -u --date="@${arg:0:10}"
+    else
+        date "+%s" --date="${arg}"
+    fi
+else
+    date "+%s"
+fi

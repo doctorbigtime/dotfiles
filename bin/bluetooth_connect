@@ -1,0 +1,16 @@
+#!/usr/bin/expect -f
+set address [lindex $argv 0];
+set prompt "#"
+
+spawn bluetoothctl
+expect -re $prompt
+send "power on\r"
+send "agent on\r"
+send "default-agent\r"
+expect -re $prompt
+sleep 1
+send "connect $address\r"
+expect -re "Connection successful"
+send_user "Connected."
+expect -re $prompt
+send "quit\r"
