@@ -1,2 +1,2 @@
 #!/bin/bash
-alacritty --command vim ~/notes.md ; exit
+alacritty --class "Notes" --command vim ~/notes.md ; exit
