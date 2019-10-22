@@ -5,13 +5,21 @@ commands["Power Off"]="sudo poweroff"
 commands["Lock Screen"]="xlock"
 commands["Suspend"]="systemctl suspend"
 
+confirm() {
+  answer=$(echo -e "No\nYes" | rofi -dmenu)
+  if [[ "$answer" = "Yes" ]]; then
+    return 0
+  else
+    return 1
+  fi
+}
+
 selection=$(for k in "${!commands[@]}"; do echo "$k"; done | rofi -i -p "Power Menu" -dmenu)
 if [ -z "$selection" ]; then
   exit 0
 fi
 if [[ "$selection" == "Power Off" || "$selection" == "Reboot" ]]; then
-  confirm=$(echo -e "Yes\nNo" | rofi -dmenu -p "[$selection] Are you sure?")
-  if [ $confirm == "No" ]; then
+  if ! confirm; then
     exit 0
   fi
 fi
