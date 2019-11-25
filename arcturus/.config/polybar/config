@@ -19,7 +19,7 @@ secondary = #c16772
 alert = #c05c47
 
 [bar/seb_bspwm]
-monitor = DP-7
+monitor = DP-6
 ;width = 100%
 height = 30
 ;offset-x = 1%
@@ -39,8 +39,8 @@ border-color = ${colors.background}
 padding-left = 0
 padding-right = 2
 
-module-margin-left = 1
-module-margin-right = 2
+module-margin-left = 0
+module-margin-right = 0
 
 #font-0 = "Roboto Mono for Powerline:size=12:weight=bold"
 font-0 = "Source Code Pro for Powerline:size=12:weight=bold"
@@ -49,9 +49,10 @@ font-2 = "Font Awesome 5 Brands:pixelsize=12;3"
 font-3 = "TerminessTTF Nerd Font Mono:pixelsize=24:antialias=true;4"
 
 #modules-left = nydevcpu nyprodcpu
-modules-left = nydevcpu
-modules-center = bspwm
-modules-right = vol date
+# modules-left = nydevcpu
+modules-left = bspwm
+#modules-center = bspwm
+modules-right = temperature vol date
 
 #separator = "|"
 
@@ -70,29 +71,30 @@ ws-icon-3 = N1;
 ws-icon-4 = N2;
 ws-icon-5 = N3;
 ws-icon-6 = E1;
-ws-icon-7 = E2;
-ws-icon-8 = E3;
+ws-icon-7 = E2;
+ws-icon-8 = E3;
+ws-icon-9 = FE1;
 
 format = <label-state> <label-mode>
 format-prefix = 
 format-suffix = 
 format-prefix-padding-right = 1
 
-label-focused = %{B#141021 F#312842}%{B#312842 F-}%icon% %name%%{B#141021 F#312842}%{B- F-}
+label-focused = %{B#141021 F#9568a1}%{B#9568a1 F-}%icon% %name%%{B#141021 F#9568a1}%{B- F-}
 ;label-focused-background = ${colors.background-alt}
 ;label-focused-underline= ${colors.primary}
-label-focused-padding = 0
+label-focused-padding = 1
 
 label-occupied = %icon% %name%
-label-occupied-padding = 2
+label-occupied-padding = 1
 
 label-urgent = %icon% %name%!
 label-urgent-background = ${colors.alert}
-label-urgent-padding = 2
+label-urgent-padding = 1
 
 label-empty = %icon% %name%
 label-empty-foreground = ${colors.foreground-alt}
-label-empty-padding = 2
+label-empty-padding = 1
 
 [module/i3]
 type = internal/i3
@@ -212,9 +214,9 @@ date = "%Y-%m-%d"
 
 time = %H:%M:%S
 
-format-prefix = %{B#141021 F#312842}%{B- F-}
-format-suffix = %{B#141021 F#312842}%{B- F-}
-label-background = ${colors.background-alt}
+format-prefix = %{B#141021 F#9568a1}%{B- F-}
+format-suffix = %{B#141021 F#9568a1}%{B- F-}
+label-background = #9568a1
 #format-prefix-foreground = ${colors.foreground}
 #format-underline = #002e2e
 
@@ -278,17 +280,19 @@ animation-charging-framerate = 750
 [module/temperature]
 type = internal/temperature
 thermal-zone = 0
-hwmon-path = /sys/class/hwmon/hwmon1/temp1_input
+hwmon-path = /sys/class/hwmon/hwmon0/temp1_input
 warn-temperature = 60
 
 ;format = <ramp> <label>
+format-prefix = %{B#141021 F#903a62}%{B#903a62 F-}
+format-suffix = %{B#141021 F#903a62}%{B- F-}
 format =  <label>
-format-underline = #006e28
+;format-underline = #006e28
 ;format-warn = <ramp> <label-warn>
 ;format-warn-underline = ${self.format-underline}
 
-label = %temperature%
-label-warn = %temperature%
+label = %temperature-c%
+label-warn = %temperature-c%
 label-warn-foreground = ${colors.secondary}
 
 ;ramp-0 = 

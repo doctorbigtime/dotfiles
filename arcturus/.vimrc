@@ -5,8 +5,8 @@ filetype on
 filetype plugin on
 syntax on
 
-set ts=4       " tabs are 4 columns
-set sw=4       " number of spaces to insert for reindent
+set ts=2       " tabs are 2 columns
+set sw=2       " number of spaces to insert for reindent
 set shiftround " round indent to next multiple of sw
 set expandtab  " turn tabs into spaces
 set ai         " autoindent
@@ -14,6 +14,7 @@ set number     " show line numbers
 set tw=0       " no maximum line length by default
 "set relativenumber " set line numbering relative to current line
 
+set cursorline " highlight current line
 set hlsearch   " highlight searches
 set ignorecase " ignore case while searching
 set smartcase  " ...unless there is a capital letter
@@ -61,12 +62,12 @@ endif
 
 " Some directories
 let g:source_roots=[$HOME . '/git/src']
-if is_work
-let g:source_roots=[$HOME . '/src/vplat', $HOME . '/src/marcrepo/greyhound']
-endif
+let g:vplat_root=$HOME . '/src/vplat'
+let g:vplat_include=g:vplat_root . '/include'
+let g:source_roots=['.', g:vplat_root, $HOME . '/src/marcrepo/greyhound']
 
 set tags=./tags,../tags,../../tags,$HOME/git/src/tags
-let path='.,../include,./include,' . join(g:source_roots, ',') . ',/usr/include'
+let &path='.,../include,./include,' . join(g:source_roots, ',') . ',/usr/include' . ',' . g:vplat_include
 
 
 " }}}
@@ -91,6 +92,7 @@ Plug 'octol/vim-cpp-enhanced-highlight'
 Plug 'vim-airline/vim-airline'
 Plug 'vim-airline/vim-airline-themes'
 Plug 'chrisbra/csv.vim'
+Plug 'chrisbra/Colorizer'
 Plug 'bling/vim-bufferline'
 if v:version >= 800
     Plug 'prabirshrestha/async.vim'
@@ -108,17 +110,6 @@ Plug 'SirVer/ultisnips'
 
 call plug#end()
 
-" ULTISNIPS
-let g:UltiSnipsJumpForwardTrigger = '<tab>'
-let g:UltiSnipsJumpBackwardTrigger = '<s-tab>'
-
-" Do i need this?
-runtime! ftplugin/man.vim
-
-" Language specific settings
-let python_highlight_all=1
-let c_no_curly_error=1
-let $PAGER=''
 " }}}
 " Section: Autocmds {{{
 " ---------------------
@@ -171,6 +162,7 @@ function! DoAg(...)
 endfunction
 command! -nargs=? Ag call DoAg(<args>)
 nnoremap <Leader>a :Ag expand('<cword>') <CR>
+nnoremap <C-I> :Ag<CR>
 
 function! EditGrepOutput(what)
     let [fn, line] = split(a:what, ':')[:1]
@@ -327,12 +319,12 @@ command! DiffSVN call DiffWithSVN()
 nnoremap <Leader>sa :sort i<cr>
 
 " Make a scratch pad
-command! -bar -nargs=? -bang PB :silent enew<bang>|set buftype=nofile bufhidden=hide nonu noswapfile buflisted filetype=<args>
-command! -bar -nargs=? -bang Scratch :silent split| enew<bang>|set buftype=nofile bufhidden=hide noswapfile buflisted filetype=<args>
-command! -bar -nargs=? -bang Write :silent enew<bang>|set spell textwidth=66 formatoptions=tacqwn noswapfile buflisted filetype=txt nonu
+command! -bar -nargs=? -bang NScratch :silent split| enew<bang>|set buftype=nofile bufhidden=hide noswapfile buflisted filetype=<args>
+command! -bar -nargs=? -bang Scratch :silent enew<bang>|set buftype=nofile bufhidden=hide noswapfile buflisted filetype=<args>
+command! -bar -nargs=? -bang PB :silent enew<bang>|set buftype=nofile bufhidden=hide noswapfile nonu buflisted filetype=<args>
 
 " global find/replace
-nnoremap <F4> :%s///g<LEFT><LEFT><LEFT>
+nnoremap <F4> :%s/<c-r><c-w>//g<LEFT><LEFT>
 
 " edit .vimrc
 nnoremap <Leader>ev :e ~/.vimrc<CR>
@@ -390,6 +382,64 @@ command! -range   Y  call Copy(<line1>, <line2>)
 command! -range   YD call Cut(<line1>, <line2>)
 command! -nargs=0 P  call Paste()
 nnoremap <silent> <Leader>p :call Paste()<cr>
+vnoremap <leader>y "yy <bar> :call system('xclip -in -selection clipboard', @y)<cr>
+
+nnoremap <leader>dg :diffget<cr>
+
+
+function! SwapComment()
+    :Commentary
+    normal j
+    :Commentary
+endfunction
+command! SC call SwapComment()<cr>
+
+function! DuplicateAndComment()
+    normal yyp
+    normal k
+    :Commentary
+    normal j
+endfunction
+command! DC call DuplicateAndComment()<cr>
+
+function! OpenAltFile()
+    let l:stem = expand('%:r')
+    let l:ext = expand('%:e')
+    let l:file_dir = expand('%:p:h') 
+    let l:h_extensions = ['hpp', 'h', 'hxx']
+    let l:c_extensions = ['cpp', 'c', 'cxx', 'cpp']
+    let l:try_extensions = []
+    let l:try_dirs = [l:file_dir]
+    if index(h_extensions, l:ext) != -1
+        " hpp -> cpp
+        let l:try_extensions = l:c_extensions
+        if match(l:file_dir, 'include') != -1
+            let l:try_dirs = l:try_dirs + [substitute(l:file_dir, 'include', 'src', '')]
+        endif
+    elseif index(c_extensions, l:ext) != -1
+        " cpp -> hpp
+        let l:try_extensions = l:h_extensions
+        let l:try_dirs = l:try_dirs + split(&path, ',')
+        echo  l:try_dirs
+        if match(l:file_dir, 'src') != -1
+            let l:try_dirs = l:try_dirs + [substitute(l:file_dir, 'src', 'include', '')]
+        endif
+    else
+        echo "Don't know what to do with extention '" . l:ext . "'"
+        return
+    endif
+    for l:dir in l:try_dirs
+        for l:new_ext in l:try_extensions
+            let l:try_path = l:dir . '/' . l:stem . '.' . l:new_ext
+            echo "Trying: " . l:try_path . "(" . l:dir . ", " . l:stem . ", " . l:new_ext . ")"
+            if(filereadable(l:try_path))
+                echo "I can open " . l:try_path
+                return
+            endif
+        endfor
+    endfor
+    echo "No candidate files found."
+endfunction
 
 " }}}
 " Section: Plugin options {{{
@@ -425,36 +475,11 @@ endfunction
 autocmd User AirlineAfterInit call AirlineInit()
 
 " Vimux
-let g:VimuxOrientation = "h"
+let g:VimuxOrientation = "v"
 let g:VimuxHeight = "20"
 if is_laptop
-    let g:VimuxOrientation = "v"
+    let g:VimuxOrientation = "h"
     let g:VimuxHeight = "40"
-endif
-
-" lsp/cquery
-" set these to debug cquery
-" let g:lsp_log_verbose = 1
-" let g:lsp_log_file = expand('~/vim-lsp.log')
-
-if v:version >= 800 && executable('cquery')
-    au User lsp_setup call lsp#register_server({
-        \ 'name': 'cquery',
-        \ 'cmd': {server_info->['cquery']},
-        \ 'root': {server_info->lsp#utils#path_to_uri(lsp#utils#find_nearest_parent_file_directory(lsp#utils#get_buffer_path(), 'compile_commands.json'))},
-        \ 'initialization_options': {
-        \   'cacheDirectory': $HOME . '/.cquery/',
-        \   'index': {
-        \       'whitelist': ['boost/asio'],
-        \       'blacklist': ['usr'],
-        \   },
-        \ },
-        \ 'whitelist': ['c', 'cc', 'cpp', 'objc', 'objcpp'],
-        \ })
-    autocmd FileType cpp setlocal omnifunc=lsp#complete
-    noremap <silent> gd :LspDefinition<CR>
-    noremap <silent> <F2> :LspRename<CR>
-    noremap <silent> gr :LspReferences<CR>
 endif
 
 " }}}
