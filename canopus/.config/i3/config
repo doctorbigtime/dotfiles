@@ -35,10 +35,11 @@ floating_modifier $mod
 # start a terminal
 #bindsym $mod+Return exec i3-sensible-terminal
 #bindsym $mod+Return exec urxvt
-bindsym $mod+Return exec /home/sfortas/.local/bin/alacritty
+bindsym $mod+Return exec ~/.local/bin/alacritty
 
 # lock the screen
-bindsym $mod+l exec /home/sfortas/bin/xlock
+bindsym $mod+l exec ~/bin/xlock
+bindsym $mod+p exec ~/bin/power_menu
 
 # kill focused window
 #bindsym $mod+Shift+q kill
@@ -135,11 +136,11 @@ bindsym $mod+Shift+r restart
 # exit i3 (logs you out of your X session)
 bindsym $mod+Shift+e exec "i3-nagbar -t warning -m 'You pressed the exit shortcut. Do you really want to exit i3? This will end your X session.' -b 'Yes, exit i3' 'i3-msg exit'"
 
-bindsym XF86AudioLowerVolume exec "/home/sfortas/bin/vol -5"
-bindsym XF86AudioRaiseVolume exec "/home/sfortas/bin/vol +5"
-bindsym XF86AudioMute exec "/home/sfortas/bin/vol 0"
-bindsym XF86MonBrightnessDown exec "/home/sfortas/bin/br -5"
-bindsym XF86MonBrightnessUp exec "/home/sfortas/bin/br +5"
+bindsym XF86AudioLowerVolume exec "~/bin/vol -5"
+bindsym XF86AudioRaiseVolume exec "~/bin/vol +5"
+bindsym XF86AudioMute exec "~/bin/vol 0"
+bindsym XF86MonBrightnessDown exec "~/bin/br -5"
+bindsym XF86MonBrightnessUp exec "~/bin/br +5"
 
 # resize window (you can also use the mouse for that)
 mode "resize" {
@@ -187,11 +188,12 @@ for_window [instance="NoTile"] floating enable
 # for_window [class="URxvt"] floating enable
 
 exec compton
-exec /home/sfortas/bin/bar.zsh
+exec ~/bin/bar.zsh
 #exec /usr/bin/google-chrome
-#exec_always feh --bg-scale /home/sfortas/Pictures/r0TYu5.jpg
-#exec_always feh --bg-scale /home/sfortas/pix/eiffel.jpg
-#exec_always feh --bg-scale /home/sfortas/pix/alamanos-beach-1920x1080.jpg
-#exec_always feh --bg-scale /home/sfortas/pix/paul-chadeisson-testspeed-0206.jpg
-exec_always feh --bg-scale /home/sfortas/pix/1029784.jpg
+#exec_always feh --bg-scale ~/pix/eiffel.jpg
+#exec_always feh --bg-scale ~/pix/alamanos-beach-1920x1080.jpg
+#exec_always feh --bg-scale ~/pix/paul-chadeisson-testspeed-0206.jpg
+#exec_always feh --bg-scale ~/pix/1029784.jpg
+exec_always feh --bg-scale ~/pix/paul-chadeisson-testspeed-0228.jpg
+
 
