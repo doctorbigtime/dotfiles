@@ -1,0 +1,11 @@
+#!/bin/bash
+csv=${1:-out.csv}
+tmp=$(mktemp)
+cat > $tmp <<-EOF 
+import pandas as pd
+import numpy as np
+d = pd.read_csv('$csv')
+print(d.columns)
+EOF
+ipython -i $tmp
+rm -f $tmp
