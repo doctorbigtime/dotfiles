@@ -79,7 +79,7 @@ network() {
     if [[ -n "$use_iwgetid" ]]; then
         id=$(iwgetid -r)
     elif [[ -n "$use_wpa_cli" ]]; then
-        id=$(wpa_cli status | grep '^ssid' | awk -F= '{ print $2 }')
+        id=$(wpa_cli status -i wlan0 | grep '^ssid' | awk -F= '{ print $2 }')
     else 
         return
     fi
@@ -100,7 +100,7 @@ cpu() {
 }
 
 hwmon_watercooling() {
-    let cpu_temp=$(cat /sys/class/hwmon/hwmon2/temp2_input)/1000
+    let cpu_temp=$(cat /sys/class/hwmon/hwmon3/temp1_input)/1000
     segment
     echo -ne "\uf2c9 $cpu_temp°"
     if [[ -x $(command -v visioncli) ]]; then
@@ -111,10 +111,20 @@ hwmon_watercooling() {
 }
 
 hwmon() {
-    if [[ "${box}" = "canopus" ]]; then
-        cpu_temp=$(sensors asus-isa-0000 | grep temp1 | awk '{ print $2 }')
+    if [[ "${box}" = "algol" ]]; then
+        let cpu_temp=$(cat /sys/class/hwmon/hwmon3/temp1_input)/1000
+        if [ $cpu_temp -gt 89 ]; then
+          beg="%{F#ff0000}"
+          fin="%{F-}"
+        elif [ $cpu_temp -gt 74 ]; then
+          beg="%{F#ff6600}"
+          fin="%{F-}"
+        else
+          beg=""
+          fin=""
+        fi
         segment
-        echo -ne "\uf2c9 $cpu_temp"
+        echo -ne "\uf2c9 ${beg}$cpu_temp°${fin}"
     elif [[ "$(systemctl is-active pwmd)" = "active" ]]; then
         hwmon_watercooling
     else
