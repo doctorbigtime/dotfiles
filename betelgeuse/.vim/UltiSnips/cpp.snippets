@@ -1,0 +1,192 @@
+extends c
+
+snippet foobar "some description of foobar"
+some damn fool idealistic ${1:crusade} this is.
+endsnippet
+
+snippet _pf
+__PRETTY_FUNCTION__${0}
+endsnippet
+
+# file boilerplate
+snippet main
+int main(int argc, char** argv) {
+	${1:// code}
+	return 0;
+}
+endsnippet
+
+snippet testh
+#include <gtest/gtest.h>
+#include <gmock/gmock.h>
+
+using ::testing::_;
+using ::testing::Return;
+using ::testing::ReturnRef;
+using ::testing::Invoke;
+using ::testing::InvokeWithoutArgs;
+using ::testing::Eq;
+using ::testing::Ref;
+using ::testing::NiceMock;
+using ::testing::StrictMock;
+
+TEST(test${1:_thing}, ${2:specific_thing})
+{
+	${0:// assertions}
+}
+endsnippet
+
+snippet gtest
+TEST(test${1:_thing}, ${2:specific_thing})
+{
+	${0:// assertions}
+}
+endsnippet
+
+snippet gtestf
+TEST_F(test${1:_thing}, ${2:specific_thing})
+{
+	${0:// assertions}
+}
+endsnippet
+
+snippet fixture
+struct ${1:testfixture} : public ::testing::Test
+{
+	$1()
+	{
+		${2:// stuff to initialize}
+	}
+	${3:// members}
+};$0
+endsnippet
+
+# function boilerplate
+snippet printer
+template <typename T>
+std::basic_ostream<T>& operator<<(std::basic_ostream<T>& os, ${1:${VISUAL:thing}} const& ${2:obj})
+{
+	return os << ${2};
+}
+endsnippet
+
+snippet readfile
+std::string ${1:fileData};
+fileData.reserve(${2:1<<16});
+{
+	std::ifstream ifs(${3:path});
+	$1.assign((std::istreambuf_iterator<char>(ifs)), std::istreambuf_iterator<char>());
+}
+endsnippet
+
+snippet once
+#pragma once
+endsnippet
+
+# include
+snippet inc "include <...>"
+#include ${1:<iostream>}$0
+endsnippet
+
+snippet incb "include <boost/...>"
+#include <boost/${1:range/adaptor/map.hpp}>$0
+endsnippet
+
+# language
+snippet ns
+namespace ${1:name} {
+$0
+} // namespace $1
+endsnippet
+
+snippet ld
+[${1:capture}](${2:args}){${3:code}};
+endsnippet
+
+snippet tp
+typename ${0}
+endsnippet
+
+snippet te
+template <typename ${1:T}>$0
+endsnippet
+
+snippet st
+struct ${1:`!v expand('%:r')`_t}
+{
+	${2:// data}
+};$0
+endsnippet
+
+snippet cl
+class ${1:`!v expand('%:r')`_t}
+{
+	public:
+	$1() = default;
+	$1(${2:args});
+	virtual ~$1();
+
+	private:
+	${3:// private data}
+};$0
+endsnippet
+
+# STL
+snippet str
+std::string${1: name}
+endsnippet
+
+snippet map
+std::map<${1:key}, ${2:value}>${0: name}
+endsnippet
+
+snippet umap
+std::unordered_map<${1:key}, ${2:value}>${0: name}
+endsnippet
+
+snippet vec
+std::vector<${1:${VISUAL:std::string}}>${0: name}
+endsnippet 
+snippet pb
+push_back(${1:${VISUAL:thing}})$0
+endsnippet
+snippet eb
+emplace_back(${1:${VISUAL:args}})$0
+endsnippet
+
+snippet func
+std::function<${1:prototype}>$0
+endsnippet
+
+snippet cout
+std::cout << ${0:thing} << std::endl;
+endsnippet
+
+snippet cerr
+std::cerr << ${0:thing} << std::endl;
+endsnippet
+
+snippet endl
+std::endl${0}
+endsnippet
+
+snippet oss
+std::ostringstream ${1:oss}
+endsnippet
+
+# Casts
+snippet dca
+dynamic_cast<${1:To}>(${2:${VISUAL:expr}})${0}
+endsnippet
+snippet sca
+static_cast<${1:To}>(${2:${VISUAL:expr}})${0}
+endsnippet
+snippet cca
+const_cast<${1:To}>(${2:${VISUAL:expr}})${0}
+endsnippet
+snippet rca
+reinterpret_cast<${1:To}>(${2:${VISUAL:expr}})${0}
+endsnippet
+snippet duca
+std::chrono::duration_cast<std::chrono::${1:nanoseconds}>(${2:${VISUAL:src}})
+endsnippet
