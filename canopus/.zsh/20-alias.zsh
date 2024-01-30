@@ -1,19 +1,45 @@
-alias ..='cd ..'
-alias ...='cd ../..'
-alias ....='cd ../../..'
+alias -g ..='cd ..'
+alias -g ...='cd ../..'
+alias -g ....='cd ../../..'
+alias -g less='less -R'
+
+alias -g H='| head'
+alias -g T='| tail'
+alias -g C='| wc -l'
+alias -g EG='|& egrep'
+alias -g L='|& less -R'
+alias -g F='| fzf'
 
 alias vi='vim'
-alias ll='ls -l --color'
-alias ls='ls --color'
+unalias ls
+ls() {
+  if [[ $1 == "-ltr" ]]; then
+    shift
+    exa -ls modified --icons $@
+  else
+    exa $@
+  fi
+}
+# alias ls='exa --icons'
+alias ll='exa -l --group-directories-first --icons'
+alias ltr='exa -ls modified --icons'
 
 alias mk='mkdir -p'
 alias mkdir='mkdir -p'
 
 alias gc='git commit -m'
+alias gs='git status'
+alias gl='git log --pretty=oneline'
 
 alias bcl='bc -l'
-alias grep='grep --color=auto --exclude-dir={.git,.svn}'
+alias grep='egrep --color=auto --exclude-dir={.git,.svn}'
 alias egrep='egrep --color=auto --exclude-dir={.git,.svn}'
+
+alias gp='git stash; git pull; git stash pop'
+
+alias t='todo.sh'
+
+alias prv='sk --preview="bat --color always {}"'
 
 mkf() { mkdir -p $1; cd $1 }
 goto() { [ -d $1 ] && cd $1 || cd $(dirname $1) }
@@ -76,6 +102,7 @@ fgo() {
     local result=$(fr "$@")
     if [ "x$result" != "x" ]; then
         ${EDITOR:-vim} $(awk -F: '{ printf "+%s %s", $2, $1 }' <<< $result)
+        fgo $@
     fi
 }
 
