@@ -1,0 +1,20 @@
+configuration {
+/*	modi: "window,run,ssh";*/
+	width: 800;
+  columns: 1;
+	font: "Source Code Pro for Powerline 16";
+	bw: 3;
+	padding: 20;
+	terminal: "alacritty";
+	separator-style: "solid";
+	hide-scrollbar: true;
+  show-icons: false;
+  icon-theme: "Papirus";
+  /* theme: "nord"; */
+	/* color-normal: "#2f343f, #d8dee8, #4b5262, #81a1c1, #d8dee8"; */
+	/* color-urgent: "#2f343f, #bf616a, #4b5262, #81a1c1, #d8dee8"; */
+	/* color-active: "#2f343f, #b3555e, #4b5262, #81a1c1, #d8dee8"; */ 
+	/* color-window: "#2f343f, #b48ead, #9568a1"; */ 
+}
+// @theme "nord"
+@theme "synthwave"
