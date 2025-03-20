@@ -1,5 +1,5 @@
 # .zshrc
-DEFAULT_USER=$USER
+DEFAULT_USER=sfortas
 
 # source all config files.
 if [ -d $HOME/.zsh ]; then
@@ -9,10 +9,13 @@ if [ -d $HOME/.zsh ]; then
     done
 fi
 [ -f $HOME/.dircolors ] && eval `dircolors $HOME/.dircolors`
-[ -f /usr/share/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh ] && \
-    source /usr/share/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh 
+[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
+[ -f /home/sfortas/git/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh ] && \
+    source /home/sfortas/git/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh 
 [ -f /usr/share/zsh/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh ] && \
   source /usr/share/zsh/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh 
+
+. ~/git/z/z.sh
 
 # misc stuff.
 
@@ -36,3 +39,9 @@ ulimit -c unlimited
 
 set -o vi
 export KEYTIMEOUT=1
+
+# The next line updates PATH for the Google Cloud SDK.
+if [ -f '/home/sfortas/opt/google-cloud-sdk/path.zsh.inc' ]; then . '/home/sfortas/opt/google-cloud-sdk/path.zsh.inc'; fi
+
+# The next line enables shell command completion for gcloud.
+if [ -f '/home/sfortas/opt/google-cloud-sdk/completion.zsh.inc' ]; then . '/home/sfortas/opt/google-cloud-sdk/completion.zsh.inc'; fi

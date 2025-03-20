@@ -5,7 +5,7 @@ filetype on
 filetype plugin on
 syntax on
 
-set ts=2       " tabs are 4 columns
+set ts=2       " tabs are 2 columns
 set sw=2       " number of spaces to insert for reindent
 set shiftround " round indent to next multiple of sw
 set expandtab  " turn tabs into spaces
@@ -14,6 +14,7 @@ set number     " show line numbers
 set tw=0       " no maximum line length by default
 "set relativenumber " set line numbering relative to current line
 
+set cursorline " highlight current line
 set hlsearch   " highlight searches
 set ignorecase " ignore case while searching
 set smartcase  " ...unless there is a capital letter
@@ -86,22 +87,15 @@ Plug 'tpope/vim-sensible'
 Plug 'tpope/vim-surround'
 Plug 'tpope/vim-commentary'
 Plug 'vim-scripts/a.vim'
+Plug 'vim-scripts/Align'
 Plug 'octol/vim-cpp-enhanced-highlight'
-Plug 'vim-airline/vim-airline'
-Plug 'vim-airline/vim-airline-themes'
 Plug 'chrisbra/csv.vim'
-Plug 'bling/vim-bufferline'
-Plug 'prabirshrestha/async.vim'
-" Plug 'prabirshrestha/vim-lsp'
-" Plug 'mattn/vim-lsp-settings'
-Plug 'skywind3000/asyncrun.vim'
-if is_laptop
-    Plug 'altercation/vim-colors-solarized'
-endif
 Plug 'SirVer/ultisnips'
 Plug 'rust-lang/rust.vim'
 Plug 'neoclide/coc.nvim', {'branch': 'release'}
 Plug 'relastle/bluewery.vim'
+Plug 'lotabout/skim', {'dir':'~/.skim', 'do':'./install'}
+Plug 'lotabout/skim.vim'
 
 call plug#end()
 
@@ -126,57 +120,10 @@ augroup END
 " Section: Functions {{{
 " ----------------------
 
-" Searching
-function! DoRGrep(...)
-    if a:0 == 0
-       call inputsave()
-       let query=input('Query: ')
-       call inputrestore()
-    else
-        let query=a:1
-    endif
-    let grep_cmd='egrep --exclude-dir={.git,.svn,.cquery,CMakeFiles} -I -R -n "'
-                \ . query . '" '
-    call asyncrun#run('<bang>', '', grep_cmd)
-    copen
-endfunction
-command! -nargs=? Grep call DoRGrep(<args>)
-nnoremap <Leader>f :Grep expand('<cword>') <CR>
-
-function! DoFzfAg(what, where)
-  let s:cmd='ag --cpp --vimgrep "' . a:what . '" ' . a:where
-  "call asyncrun#run('<bang>', '', s:cmd)
-  "copen
-  call fzf#run({'source': s:cmd, 'down': '25%', 'sink': function('EditGrepOutput')})
-endfunction
-
-function! DoAg(...)
-    if a:0 == 0
-       call inputsave()
-       let query=input('Query: ')
-       call inputrestore()
-    else
-        let query=a:1
-    endif
-    call DoFzfAg(query, '.')
-endfunction
-
-function! DoVag(...)
-    if a:0 == 0
-       call inputsave()
-       let query=input('Query: ')
-       call inputrestore()
-    else
-        let query=a:1
-    endif
-    call DoFzfAg(query, join(g:source_roots, ' '))
-endfunction
-
-command! -nargs=? Ag call DoAg(<args>)
-command! -nargs=? Vag call DoVag(<args>)
-nnoremap <Leader>ag :Ag expand('<cword>') <CR>
-nnoremap <Leader>vg :Vag expand('<cword>') <CR>
-nnoremap <C-I> :Ag<CR>
+command! -nargs=* Ag call fzf#vim#ag_interactive('.', fzf#vim#with_preview('right:50%:hidden', 'alt-h'))
+" nnoremap <Leader>ag :Ag expand('<cword>')<CR>
+nnoremap <Leader>ag :call fzf#vim#ag(expand('<cword>'))<CR>
+" nnoremap <C-I> :Ag<CR>
 
 nnoremap <leader>dg :diffget<CR>
 
@@ -185,12 +132,12 @@ function! EditGrepOutput(what)
     execute "edit +" . line . " " . fnameescape(fn)
 endfunction
 
-function! TypeDef(typename)
-    let s:cmd = 'ag --cpp --vimgrep "(struct|class)( +V.._DECLARE_EXPORT)? +' . a:typename . '" ' . join(g:source_roots, ' ')
-    call fzf#run({'source': s:cmd, 'down': '25%', 'sink': function('EditGrepOutput')})
-endfunction
-noremap <Leader>gt :call TypeDef(expand('<cword>'))<CR>
-command! -nargs=1 TD :call TypeDef(<f-args>)<CR>
+" function! TypeDef(typename)
+"     let s:cmd = 'ag --cpp --vimgrep "(struct|class)( +V.._DECLARE_EXPORT)? +' . a:typename . '" ' . join(g:source_roots, ' ')
+"     call fzf#run({'source': s:cmd, 'down': '25%', 'sink': function('EditGrepOutput')})
+" endfunction
+" noremap <Leader>gt :call TypeDef(expand('<cword>'))<CR>
+" command! -nargs=1 TD :call TypeDef(<f-args>)<CR>
 
 " Build related stuff
 let g:build_cores=15
@@ -412,14 +359,51 @@ function! DuplicateAndComment()
 endfunction
 
 command! DC call DuplicateAndComment()
+function! OpenAltFile()
+    let l:stem = expand('%:r')
+    let l:ext = expand('%:e')
+    let l:file_dir = expand('%:p:h') 
+    let l:h_extensions = ['hpp', 'h', 'hxx']
+    let l:c_extensions = ['cpp', 'c', 'cxx', 'cpp']
+    let l:try_extensions = []
+    let l:try_dirs = [l:file_dir]
+    if index(h_extensions, l:ext) != -1
+        " hpp -> cpp
+        let l:try_extensions = l:c_extensions
+        if match(l:file_dir, 'include') != -1
+            let l:try_dirs = l:try_dirs + [substitute(l:file_dir, 'include', 'src', '')]
+        endif
+    elseif index(c_extensions, l:ext) != -1
+        " cpp -> hpp
+        let l:try_extensions = l:h_extensions
+        let l:try_dirs = l:try_dirs + split(&path, ',')
+        echo  l:try_dirs
+        if match(l:file_dir, 'src') != -1
+            let l:try_dirs = l:try_dirs + [substitute(l:file_dir, 'src', 'include', '')]
+        endif
+    else
+        echo "Don't know what to do with extention '" . l:ext . "'"
+        return
+    endif
+    for l:dir in l:try_dirs
+        for l:new_ext in l:try_extensions
+            let l:try_path = l:dir . '/' . l:stem . '.' . l:new_ext
+            echo "Trying: " . l:try_path . "(" . l:dir . ", " . l:stem . ", " . l:new_ext . ")"
+            if(filereadable(l:try_path))
+                echo "I can open " . l:try_path
+                return
+            endif
+        endfor
+    endfor
+    echo "No candidate files found."
+endfunction
 
 " }}}
 " Section: Plugin options {{{
 " ---------------------------
 
-" fzf
-let g:fzf_layout = { 'down': '~30%' }
-nnoremap <c-p> :FZF<CR>
+nnoremap <c-p> :Files<CR>
+nnoremap <c-n> :Buffers<CR>
 
 " UltiSnips
 let g:UltiSnipsJumpForwardTrigger = '<tab>'
@@ -431,56 +415,21 @@ let c_no_curly_error=1
 let $PAGER=''
 let g:rust_recommended_style=0
 
-" airline
-let g:airline_powerline_fonts=1
-let g:airline_extensions = ['branch', 'bufferline']
-let g:airline#extensions#bufferline#enabled=1
-let g:airline#extensions#bufferline#overwrite_variables=1
-let g:airline#extensions#whitespace#enabled=0
 set laststatus=2
-
-function! AirlineInit()
-    let g:airline_section_z = ''
-endfunction
-autocmd User AirlineAfterInit call AirlineInit()
-
-" lsp
-" if executable('rust-analyzer')
-"   au User lsp_setup call lsp#register_server({
-"     \ 'name': 'Rust Language Server',
-"     \ 'cmd': {server_info->['rust-analyzer']},
-"     \ 'whitelist': ['rust'],
-"     \ })
-" endif
-
-" function! s:on_lsp_buffer_enabled() abort
-"   echom "on_lsp_buffer_enabled"
-"   setlocal omnifunc=lsp#complete
-"   setlocal signcolumn=yes
-"   if exists('+tagfunc') | setlocal tagfunc=lsp#tagfunc | endif
-"   nmap <buffer> gd <plug>(lsp-definition)
-"   nmap <buffer> gs <plug>(lsp-document-symbol-search)
-"   nmap <buffer> gt <plug>(lsp-type-definition)
-"   nmap <buffer> [g >plug>(lsp-previous-diagnostic)
-"   nmap <buffer> ]g >plug>(lsp-next-diagnostic)
-"   nmap <buffer> K >plug>(lsp-hover)
-"   nnoremap <buffer> <expr><c-f> lsp#scroll(+4)
-"   nnoremap <buffer> <expr><c-d> lsp#scroll(-4)
-
-"   let g:lsp_format_sync_timeout = 1000
-"   " autocmd! BufWritePre *.rs call execute('LspDocumentFormatSync')
-
-" endfunction
-
-" augroup lsp_install
-"   au!
-"   autocmd User lsp_buffer_enabled call s:on_lsp_buffer_enabled()
-" augroup END
 
 " CoC
 set signcolumn=yes
-inoremap <expr> <cr> coc#pum#visible() ? coc#pum#confirm() : "\<CR>"
+function! ShowDocumentation()
+	if CocAction('hasProvider', 'hover')
+		call CocAction('doHover')
+	else
+		call feedkeys('K', 'in')
+	endif
+endfunction
+
+inoremap <silent><expr> <CR> coc#pum#visible() ? coc#pum#confirm() : "\<CR>"
 inoremap <silent><expr> <c-space> coc#refresh()
+
 nmap <silent> [g <Plug>(coc-diagnostic-prev)
 nmap <silent> ]g <Plug>(coc-diagnostic-next)
 " goto
@@ -490,32 +439,64 @@ nmap <silent> gi <Plug>(coc-implementation)
 nmap <silent> gr <Plug>(coc-references)
 nnoremap <silent> K :call ShowDocumentation()<CR>
 
-function! ShowDocumentation()
-  if CocAction('hasProvider', 'hover')
-    call CocActionAsync('doHover')
-  else
-    call feedkeys('K', 'in')
-  endif
-endfunction
-
-"inoremap <silent><expr> <cr> pumvisible() ? coc#_select_confirm() : \"<C-g>u\<c-r>=coc#on_enter()\<CR>"
-
-
-" Vimux
-let g:VimuxOrientation = "h"
-let g:VimuxHeight = "20"
-if is_laptop
-    let g:VimuxOrientation = "v"
-    let g:VimuxHeight = "40"
-endif
-
 " Colors!
 
 " }}}
 " Section: Colors! {{{
 " --------------------
 set termguicolors
-let g:airline_theme='distinguished'
-colorscheme candid
+" colorscheme candid
+" colorscheme onedarkish
+colorscheme kanagawa
+
+" }}}
+" Section: statusline {{{
+" -----------------------
+" TODO: move this to color theme?
+hi User1 guibg='#98BB6C' guifg='#1f1f28' cterm=bold
+hi User2 guifg='#FF9E3B'
+hi User3 guifg='#E82424'
+hi User4 cterm=bold
+function GetMode()
+  let s:mode = mode()
+  if s:mode == 'n'
+    return 'NORMAL'
+  elseif s:mode == 'i'
+    return 'INSERT'
+  elseif s:mode == 'v'
+    return 'VISUAL'
+  elseif s:mode == 'c'
+    return 'COMMAND'
+  else
+    return s:mode
+  endif
+endfunction
+function BufferString(bnum)
+  let bname = bufname(a:bnum)
+  let mod = getbufvar(a:bnum, "&mod") ? " %2*[+]%*" : ""
+  let is_active = bufnr('%') == a:bnum
+  return (is_active ? '%3*[%4*' : '') . a:bnum . '.:' . bname . mod . (is_active ? '%3*]%*' : '')
+endfunction
+function BufferLine()
+  let listed = getbufinfo({'buflisted': 1})
+  let current = bufnr('%')
+  let cbufstr = BufferString(current)
+  let ans = cbufstr
+  for buf in listed
+    if buf.bufnr == current
+      continue
+    endif
+    let bufstr = BufferString(buf.bufnr)
+    let ans = ans . ' ' . bufstr
+  endfor
+  return ans
+endfunction
+function StatusLine()
+  return '%1* %{GetMode()}%{&paste?"\|PASTE":""} %* %{%BufferLine()%}'
+endfunction
+augroup set_status_line
+  autocmd WinEnter,BufEnter,BufAdd * setl statusline=%{%StatusLine()%}
+  autocmd WinLeave,BufLeave * setl statusline=\ %F
+augroup END
 
 " }}}
